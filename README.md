@@ -1,11 +1,12 @@
-# Sisop-5-2025-IT-Template
+# Laporan Resmi Modul 5 Kelompok IT-07
 
 ## Kelompok
 
-Nama | NRP
---- | ---
-Amoes Noland | 5027231028
-Rafi' Afnaan Fathurrahman | 5027231040
+| Nama 				| NRP		|
+|-------------------------------|---------------|
+| Muhammad Rakha Hananditya R.	| 5027241015 	|
+| Zaenal Mustofa		| 5027241018 	|
+| Mochkamad Maulana Syafaat	| 5027241021 	|
 
 ## Daftar Isi
 
