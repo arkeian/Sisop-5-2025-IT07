@@ -3,11 +3,15 @@
 
 #define SEGMENT     0xB000
 #define ADDRESS     0x8000
-#define INT_HEX     0x16
+#define INT_VID     0x10
+#define INT_KBD     0x16
 #define TELETYPE    0X0E
 #define KEYBOARD    0X00
 #define MASK        0x00FF
 #define VALID_ASCII 0X20
+#define SCROLL      0x06
+#define SCROLL_ONE  0x01
+#define IGNORE      0x00
 #define MAX_COLUMNS 80
 #define MAX_ROWS    25
 #define BUFFER      1024
@@ -18,13 +22,65 @@ static unsigned char _color = 0x05;
 char input[BUFFER];
 
 enum KEYCODE {
+  KEY_NEWLINE   = '\n',
   KEY_RETURN    = '\r',
-  KEY_BACKSPACE = '\b'
+  KEY_TAB       = 0x09,
+  KEY_BACKSPACE = 0x08
 };
 
 void main() {
   clearScreen();
   shell();
+}
+
+void repositionXY(unsigned int x, unsigned int y) {
+  _xPos = x;
+  _yPos = y;
+  _xStart = _xPos;
+  _yStart = _yPos;
+}  
+
+/*
+void scroll() {
+  unsigned int from, to;
+  unsigned int offset;
+  int i, j;
+  char buf, attribute;
+
+  for (i = 1; i < MAX_ROWS; i++) {
+    for (j = 0; j < MAX_COLUMNS; j++) {
+      from = ADDRESS + (i * MAX_COLUMNS + j) * 2;
+      to = ADDRESS + ((i - 1) * MAX_COLUMNS + j) * 2;
+      buf = *(char *)(SEGMENT * 16 + from);
+      attribute = *(char *)(SEGMENT * 16 + from + 1);
+
+      putInMemory(SEGMENT, to, buf);
+      putInMemory(SEGMENT, to + 1, attribute);
+    }
+  }
+
+  for (j = 0; j < MAX_COLUMNS; j++) {
+      offset = ADDRESS + ((MAX_ROWS - 1) * MAX_COLUMNS + j) * 2;
+
+      putInMemory(SEGMENT, offset, ' ');
+      putInMemory(SEGMENT, offset + 1, _color);
+  }
+
+  repositionXY(0, MAX_ROWS - 1);
+}
+*/
+
+void scroll() {
+  unsigned int ax, bx, cx, dx;
+
+  ax = (SCROLL << 8) | SCROLL_ONE;
+  bx = (_color << 8) | IGNORE;
+  cx = (0 << 8) | 0;
+  dx = ((MAX_ROWS - 1) << 8) | (MAX_COLUMNS - 1);
+
+  interrupt(INT_VID, ax, bx, cx, dx);
+
+  repositionXY(0, MAX_ROWS - 1);
 }
 
 void putc(unsigned char c) {
@@ -33,24 +89,24 @@ void putc(unsigned char c) {
 
   if (c == 0) {
     return;
-  }
-
-  if (c == '\n') {
+  }  
+  else if (c == KEY_NEWLINE) {
     _xPos = _xStart;
     _yPos++;
     return;
   }
+  else if (c ==  KEY_TAB) {
+    _xPos += 4;
+  }
 
-  if (_xPos > MAX_COLUMNS - 1) {
+  if (_xPos >= MAX_COLUMNS) {
     _xPos = _xStart;
     _yPos++;
-    return;
-  }
+  }  
 
-  if (_yPos > MAX_ROWS - 1) {
-    _yPos = _yStart;
-    return;
-  }
+  if (_yPos >= MAX_ROWS) {
+    scroll();
+  }  
 
   offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
 
@@ -58,69 +114,66 @@ void putc(unsigned char c) {
   putInMemory(SEGMENT, offset + 1, _color);
 
   _xPos++;
-}
+}  
 
-void repositionXY(unsigned int x, unsigned int y) {
-  _xPos = x;
-  _yPos = y;
-  _xStart = _xPos;
-  _yStart = _yPos;
-}
 
 void printString(char *str)
 {
   if (str == 0) {
     return;
-  }
+  }  
 
   while(*str) {
     putc(*str);
     str++;
-  }
-}
+  }  
+}  
 
 void readString(char *buf) {
   unsigned char c;
   int bufPos = 0;
-  int ax = 0;
+  unsigned int ax;
   unsigned int offset;
 
   while (1) {
-    ax = interrupt(INT_HEX, KEYBOARD, 0, 0, 0);
+    ax = interrupt(INT_KBD, KEYBOARD, 0, 0, 0);
     c = (unsigned char)(ax & MASK);
 
-    if (c ==  KEY_RETURN) {
+    if (c == KEY_RETURN) {
       buf[bufPos] = '\0';
-      putc('\n');
+      putc(KEY_NEWLINE);
       break;
     }
+    else if (c == KEY_TAB) {
+      putc(KEY_TAB);
+    }  
     else if (c == KEY_BACKSPACE) {
       if (bufPos > 0) {
         bufPos--;
 
         if (_xPos > _xStart) {
           _xPos--;
-        }
+        }  
         else if (_yPos > _yStart) {
           _yPos--;
           _xPos = MAX_COLUMNS - 1;
-        }
+        }  
 
         offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
   
         putInMemory(SEGMENT, offset, ' ');
         putInMemory(SEGMENT, offset + 1, _color);
-      }
-    }
+      }  
+    }  
     else {
       if (c >= VALID_ASCII && bufPos < BUFFER - 1) {
         buf[bufPos] = c;
         bufPos++;
         putc(c);
-      }
-    }
-  }
-}
+      }  
+    }  
+  }  
+}  
 
 void clearScreen() {
   unsigned int offset;
@@ -132,9 +185,9 @@ void clearScreen() {
 
       putInMemory(SEGMENT, offset, ' ');
       putInMemory(SEGMENT, offset + 1, _color);
-    }
-  }
+    }  
+  }  
 
   repositionXY(0, 0);
-}
+}  
 
