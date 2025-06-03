@@ -14,6 +14,7 @@
 #define IGNORE      0x00
 #define MAX_COLUMNS 80
 #define MAX_ROWS    25
+#define TAB_SIZE    4
 #define BUFFER      1024
 
 static unsigned int _xPos = 0, _yPos = 0;
@@ -95,9 +96,6 @@ void putc(unsigned char c) {
     _yPos++;
     return;
   }
-  else if (c ==  KEY_TAB) {
-    _xPos += 4;
-  }
 
   if (_xPos >= MAX_COLUMNS) {
     _xPos = _xStart;
@@ -134,6 +132,7 @@ void readString(char *buf) {
   int bufPos = 0;
   unsigned int ax;
   unsigned int offset;
+  int i;
 
   while (1) {
     ax = interrupt(INT_KBD, KEYBOARD, 0, 0, 0);
@@ -145,7 +144,11 @@ void readString(char *buf) {
       break;
     }
     else if (c == KEY_TAB) {
-      putc(KEY_TAB);
+      for (i = 0; i < TAB_SIZE; i++) {
+        buf[bufPos] = ' ';
+        bufPos++;
+        putc(' ');
+      }
     }  
     else if (c == KEY_BACKSPACE) {
       if (bufPos > 0) {
