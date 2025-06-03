@@ -1,64 +1,116 @@
 #include "std_lib.h"
 #include "std_type.h"
 
+#define INT_MAX 32767
+
 int div(int a, int b) {
-  //TODO: Implementasi pembagian
-  //NOTE: HARUS BISA ANGKA NEGATIF
-}
+  int quotient = 0;
+  int negative = false;
+  int tmpb, multiple;
 
-int mod(int a, int b)
-{
-  //TODO: Implementasi modulus
-}
+  if (b == 0) {
+    return INT_MAX;
+  }
 
-bool strcmp(char *str1, char *str2) {
-  int res = 0;
-  while (*str2 != '\0') {
-    res = *(unsigned char *)str1 - *(unsigned char *)str2);
-    if (res != 0) {
-      break;
+  if (a < 0) {
+    a *= -1;
+    negative = !negative;
+  }
+  
+  if (b < 0) {
+    b *= -1;
+    negative = !negative;
+  }
+
+  while (a >= b) {
+    tmpb = b;
+    multiple = 1;
+
+    while ((tmpb << 1) > 0 && (tmpb << 1) <= a) {
+      tmpb <<= 1;
+      multiple <<= 1;
     }
-    
-    ++str1;
-    ++str2;
+
+    a -= tmpb;
+    quotient += multiple;
   }
 
-  if (res < 0 || res > 0) {
-    res = 0;
-  }
-  else if (res == 0) {
-    res = 1;
+  if (negative) {
+    return -quotient;
   }
 
-  return res;
+  return quotient;
 }
 
-void strcpy(char *dst, char *src) {
-  char *dst_ptr = dst;
+int mod(int a, int b) {
+  int negative = false;
+  int tmpb;
 
-  while (*dst != '\0' && *src != '\0') {
+  if (b == 0) {
+    return 0;
+  }
+
+  if (a < 0) {
+    a *= -1;
+    negative = true;
+  }
+
+  if (b < 0) {
+    b *= -1;
+  }
+
+  while (a >= b) {
+    tmpb = b;
+
+    while ((tmpb << 1) > 0 && (tmpb << 1) <= a) {
+      tmpb <<= 1;
+    }
+
+    a -= tmpb;
+  }
+
+  if (negative) {
+    return -a;
+  }
+
+  return a;
+}
+
+int strcmp(char* str1, char* str2) {
+	int res = 0;
+	while (!(res = *(unsigned char*)str1 - *(unsigned char*)str2) && *str2) {
+		++str1, ++str2;
+  }
+
+	if (res < 0) {
+		res = -1;
+  }
+	if (res > 0) {
+		res = 1;
+  }
+
+	return res;
+}
+
+char *strcpy(char *dst, char *src) {
+  char *dstPtr = dst;
+
+  while (*src != '\0') {
     *dst = *src;
     dst++;
     src++;
   }
   
-  return *dst_ptr;
+  *dst = '\0';
+
+  return dstPtr;
 }
 
-size_t strlen(const char *str) {
-  size_t len = 0;
-
-  while (*str != '\0') {
-    len++;
-    str++;
+void clear(byte *buf, unsigned int size) {
+  unsigned int i;
+  for (i = 0; i < size; i++) {
+    buf[i] = 0;
   }
-
-  return len;
-}
-
-void clear(byte *buf, unsigned int size)
-{
-  //TODO: Implementasi pembersihan buffer
 }
 
 void atoi(char *str, int *num) {
@@ -79,7 +131,7 @@ void atoi(char *str, int *num) {
   }
   
   while (str[pos] != '\0') {
-    if (!isdigit(str[pos])) {
+    if (!(str[pos] >= '0' && str[pos] <= '9')) {
       break;
     }
     tbuf[pos] = (int)(str[pos] - '0');
@@ -107,14 +159,15 @@ void itoa(int num, char *str) {
     return;
   }
 
+  if (num < 0) {
+    num *= -1;
+    is_negative = 1;
+  }
+
   while (num != 0) {
-    if (num < 0) {
-      num *= -1;
-      is_negative = 1;
-    }
-    tbuf[pos] = (char)('0' + (num % 10));
+    tbuf[pos] = (char)('0' + mod(num, 10));
     pos++;
-    num /= 10;
+    num = div(num, 10);
   }
 
   if (is_negative) {
