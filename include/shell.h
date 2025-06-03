@@ -4,8 +4,6 @@
 #include "std_type.h"
 
 void shell();
-void parseCommand(char *buf, char *cmd, char arg[2][64]);
-
-// Tambahkan fungsi bila perlu
+void parseCommand(char *buf, char *cmd, char arg[10][64], int *arg_count);
 
 #endif // __SHELL_H__
