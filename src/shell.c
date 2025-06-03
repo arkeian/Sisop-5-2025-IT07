@@ -1,27 +1,28 @@
-// shell_with_history_cd.c
-
 #include "shell.h"
 #include "std_lib.h"
 #include "kernel.h"
 
 #define MAX_HISTORY 20
+#define BUFFER_SIZE 128
 
 char current_user[64] = "user";
-char history[MAX_HISTORY][128];
+char history[MAX_HISTORY][BUFFER_SIZE];
 int history_count = 0;
 
-static void parseCommand(char *buf, char *cmd, char arg[10][64], int *arg_count);
-
 void shell() {
-    char buf[128];
-    char original_input[128];
+    char buf[BUFFER_SIZE];
+    char original_input[BUFFER_SIZE];
     char cmd[64];
     char args[10][64];
     int arg_count;
+    int num1, num2;
+    int resint;
+    char resstr[12];
 
     printString("Welcome to EorzeOS!\n");
-
+    
     while (true) {
+        clear(buf, BUFFER_SIZE);
         printString(current_user);
         printString("> ");
 
@@ -57,7 +58,6 @@ void shell() {
         else if (strcmp(cmd, "help") == 0) {
             printString("Available commands:\n");
             printString("  user [name]    : Change current username\n");
-            printString("  cd [dir]       : Change directory\n");
             printString("  history        : Show last commands\n");
             printString("  yo             : Print 'gurt'\n");
             printString("  gurt           : Print 'yo'\n");
@@ -91,6 +91,38 @@ void shell() {
         } else if (strcmp(cmd, "gurt") == 0) {
             printString("yo\n");
         }
+        else if (strcmp(cmd, "div") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = div(num1, num2);
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
+        else if (strcmp(cmd, "add") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = num1 + num2;
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
+        else if (strcmp(cmd, "mul") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = num1 * num2;
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
+        else if (strcmp(cmd, "sub") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = num1 - num2;
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
         // else echo
         else {
             printString(original_input);
@@ -99,7 +131,7 @@ void shell() {
     }
 }
 
-static void parseCommand(char *buf, char *cmd, char arg[10][64], int *arg_count) {
+void parseCommand(char *buf, char *cmd, char arg[10][64], int *arg_count) {
     int i = 0, j = 0, k;
     *arg_count = 0;
 

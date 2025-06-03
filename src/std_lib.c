@@ -116,9 +116,7 @@ void clear(byte *buf, unsigned int size) {
 void atoi(char *str, int *num) {
   int tbuf[12];
   int pos = 0;
-  int opos = 0;
   int is_negative = 0;
-  int base = 1;
   *num = 0;
 
   if (str[0] == '0' && str[1] == '\0') {
@@ -130,16 +128,13 @@ void atoi(char *str, int *num) {
     pos++;
   }
   
-  while (str[pos] != '\0') {
-    if (!(str[pos] >= '0' && str[pos] <= '9')) {
+  for (pos; str[pos] != '\0'; pos++) {
+    if (str[pos] >= '0' && str[pos] <= '9') {
+      *num = (*num * 10) + (str[pos] - '0');
+    }
+    else {
       break;
     }
-    tbuf[pos] = (int)(str[pos] - '0');
-    pos++;
-  }
-
-  for (opos = pos - 1; opos >= 0; opos--, base *= 10) {
-    *num += tbuf[opos] * base;
   }
 
   if (is_negative) {
@@ -150,8 +145,8 @@ void atoi(char *str, int *num) {
 void itoa(int num, char *str) {
   char tbuf[12];
   int pos = 0;
-  int opos = 0;
   int is_negative = 0;
+  int i, len;
 
   if (num == 0) {
     str[0] = '0';
@@ -175,8 +170,11 @@ void itoa(int num, char *str) {
     pos++;
   }
 
-  for (opos = 0; opos < pos; pos--, opos++) {
-    str[opos] = tbuf[pos - 1];
+  len = pos;
+
+  for (i = 0; i < len; i++) {
+    str[i] = tbuf[len - 1 - i];
   }
-  str[opos] = '\0';
+
+  str[len] = '\0';
 }

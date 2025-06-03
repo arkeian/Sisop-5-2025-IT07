@@ -15,12 +15,11 @@
 #define MAX_COLUMNS 80
 #define MAX_ROWS    25
 #define TAB_SIZE    4
-#define BUFFER      1024
+#define BUFFER      128
 
 static unsigned int _xPos = 0, _yPos = 0;
 static unsigned int _xStart = 0, _yStart = 0;
-static unsigned char _color = 0x05;
-char input[BUFFER];
+static unsigned char _color = 0x0F;
 
 enum KEYCODE {
   KEY_NEWLINE   = '\n',
