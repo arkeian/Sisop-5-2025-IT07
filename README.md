@@ -22,7 +22,7 @@
 
 ## Soal
 
-Pada suatu hari, anda merasa sangat lelah dari segala macam praktikum yang sudah ada, sehingga anda berencana untuk tidur yang nyenyak di sebuah jam 3:34AM yang cerah. Tetapi, anda terbangun di dalam dunia berbeda yang bernama "Eorzea". Ada sesuatu yang mengganggu pikiran anda sehingga anda diharuskan membuat sebuah operating system bernama "EorzeOS" untuk mendampingi diri anda dalam dunia ini.
+Pada suatu hari, anda merasa sangat lelah dari segala macam praktikum yang sudah ada, sehingga anda berencana untuk tidur yang nyenyak di sebuah jam 3:34AM yang cerah. Tetapi, anda terbangun di dalam dunia berbeda yang bernama "Eorzea". Ada sesuatu yang mengganggu pikiran anda sehingga anda diharuskan membuat sebuah operating system bernama `EorzeOS` untuk mendampingi diri anda dalam dunia ini.
 
 1. Sebagai seorang main character dari dunia ini, ternyata anda memiliki kekuatan yang bernama "The Echo", kekuatan ini memungkinkan anda untuk berbicara pada Operating System ini (mungkin sebenarnya bukan ini kekuatannya, tetapi ini cukup kuat juga), dengan tujuan agar semua hal yang anda katakan, bila bukan merupakan sebuah command yang valid, akan mengulang hal yang anda katakan.
 
@@ -180,4 +180,157 @@ https://github.com/user-attachments/assets/1cfa66b1-b2f5-4e3e-a4b2-ec8b012f6fbb
 
 ## Laporan
 
-> Isi sesuai pengerjaan.
+### Kernel
+
+### Stdlib
+
+### Shell
+
+### Makefile
+
+&emsp;Makefile merupakan sebuah file yang memiliki fungsi utama menuliskan daftar instruksi yang digunakan untuk menyederhanakan proses build dan compile program `EorzeOS` yang cenderung memiliki banyak command yang perlu dijalankan agar dapat dieksekusi. Makefile akan hanya menjalankan bagian instruksi yang diperlukan dan tidak akan menjalankan instruksi yang memiliki keluaran yang sudah ada dan tidak berubah dari proses build sebelumnya. Adapun tampilan file makefile yang digunakan pada program `EorzeOS` ini adalah sebagai berikut:
+
+```make
+ASM		= nasm
+CC		= bcc
+LINKER		= ld86
+FLOPPY_IMG	= bin/floppy.img
+INCLUDE_PATH	= include/
+BOOTLOADER_SRC 	= src/bootloader.asm
+BOOTLOADER_BIN 	= bin/bootloader.bin
+KERNEL_ASM_SRC	= src/kernel.asm
+KERNEL_C_SRC	= src/kernel.c
+KERNEL_ASM_OBJ	= bin/kernel-asm.o
+KERNEL_C_OBJ	= bin/kernel.o
+KERNEL_BIN	= bin/kernel.bin
+SHELL_C_SRC	= src/shell.c
+SHELL_C_OBJ	= bin/shell.o
+STDLIB_C_SRC	= src/std_lib.c
+STDLIB_C_OBJ	= bin/std_lib.o
+EMULATOR	= bochs
+EMULATOR_SRC	= bochsrc.txt
+
+prepare:
+	dd if=/dev/zero of=$(FLOPPY_IMG) bs=512 count=2880
+
+bootloader:
+	$(ASM) -f bin $(BOOTLOADER_SRC) -o $(BOOTLOADER_BIN)
+	dd if=$(BOOTLOADER_BIN) of=$(FLOPPY_IMG) bs=512 count=1 conv=notrunc
+
+stdlib:
+	$(CC) -I$(INCLUDE_PATH) -ansi -c $(STDLIB_C_SRC) -o $(STDLIB_C_OBJ)
+
+shell:
+	$(CC) -I$(INCLUDE_PATH) -ansi -c $(SHELL_C_SRC) -o $(SHELL_C_OBJ)
+
+kernel:
+	$(ASM) -f as86 $(KERNEL_ASM_SRC) -o $(KERNEL_ASM_OBJ)
+	$(CC) -I$(INCLUDE_PATH) -ansi -c $(KERNEL_C_SRC) -o $(KERNEL_C_OBJ)
+	$(LINKER) -o $(KERNEL_BIN) -d $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(SHELL_C_OBJ) $(STDLIB_C_OBJ)
+
+link:
+	dd if=$(KERNEL_BIN) of=$(FLOPPY_IMG) bs=512 seek=1 conv=notrunc
+
+build: prepare bootloader stdlib shell kernel link
+	$(EMULATOR) -f $(EMULATOR_SRC)
+```
+
+Di mana penjelasan setiap bagiannya:
+
+#### Variabel Global
+
+```make
+ASM		= nasm
+```
+1. Variabel `ASM` menyimpan data terkait compiler yang pada kasus ini adalah `Netwide Assembler` atau disingkat `nasm` dan digunakan untuk proses mengubah kode bahasa assembly menjadi suatu file dengan format raw bianry yang dapat dieksekusi oleh processor.
+
+```make
+CC		= bcc
+```
+2. Variabel `CC` menyimpan data terkait compiler yang pada kasus ini adalah `Bruce's C Compiler` atau disingkat `bcc` dan digunakan untuk proses mengubah kode bahasa ANSI C (C89) menjadi suatu file objek.
+
+```make
+LINKER		= ld86
+```
+3. Variabel `LINKER` menyimpan data terkait program linker yang pada kasus ini adalah `ld86` yang merupakan suatu linker dari `bcc` untuk arsitektur 8086 dengan sistem 16-bit dan digunakan untuk menggabungkan file-file objek program ANSI C (C89) yang telah di-compile oleh `bcc` menjadi suatu file biner yang bisa dieksekusi oleh processor.
+
+```make
+FLOPPY_IMG	= bin/floppy.img
+```
+4. Variabel `FLOPPY_IMG` menyimpan data terkait alamat atau path dari file image floppy yang merupakan media virtual berukuran 1.44MB yanga akan digunakan oleh program emulator dari `Bochs` dan berisi file biner bootloader dan kernel yang telah di-compile sebelumnya menggunakan `nasm` dan `bcc` ke dalam urutan sektor yang sesuai yang pada kasus ini bootloader diletakkan pada sektor `0` (512 byte pertama) dan kernel yang diletakkan pada sektor-sektor selanjutnya, dimulai dari sektor `1`.
+
+```make
+INCLUDE_PATH	= include/
+```
+5. Variabel `INCLUDE_PATH` menyimpan data terkait alamat atau path dari direktori yang menyimpan file-file header yang digunakan oleh file program ANSI C (C89) agar dapat berjalan yang berisi pendefinisian fungsi atau prototipe fungsi dan pendefinisian konstanta.
+
+```make
+BOOTLOADER_SRC 	= src/bootloader.asm
+```
+6. Variabel `BOOTLOADER_SRC` menyimpan data terkait alamat atau path dari file sumber program assembly yang berhubungan dengan bootloader program `EorzeOS` dan nantinya akan di-compile menggunakan `nasm` menjadi suatu file biner.
+
+```make
+BOOTLOADER_BIN 	= bin/bootloader.bin
+```
+7. Variabel `BOOTLOADER_BIN` menyimpan data terkait alamat atau path dari file tujuan program assembly yang berhubungan dengan bootloader program `EorzeOS` dan merupakan hasil dari proses compile `BOOTLOADER_SRC` menggunakan `nasm` di mana `BOOTLOADER_BIN` merupakan suatu file biner.
+
+```make
+KERNEL_ASM_SRC	= src/kernel.asm
+```
+8. Variabel `KERNEL_ASM_SRC` menyimpan data terkait alamat atau path dari file sumber program assembly yang berhubungan dengan kernel program `EorzeOS` dan nantinya akan di-compile menggunakan `nasm` menjadi suatu file objek.
+
+```make
+KERNEL_C_SRC	= src/kernel.c
+```
+9. Variabel `KERNEL_C_SRC` menyimpan data terkait alamat atau path dari file sumber program ANSI C (C89) yang berhubungan dengan kernel program `EorzeOS` dan nantinya akan di-compile menggunakan `bcc` menjadi suatu file objek.
+
+```make
+KERNEL_ASM_OBJ	= bin/kernel-asm.o
+```
+10. Variabel `KERNEL_ASM_OBJ` menyimpan data terkait alamat atau path dari file tujuan program assembly yang berhubungan dengan kernel program `EorzeOS` dan merupakan hasil dari proses compile `KERNEL_ASM_SRC` menggunakan `nasm` di mana `KERNEL_ASM_OBJ` merupakan suatu file objek.
+
+```make
+KERNEL_C_OBJ	= bin/kernel.o
+```
+11. Variabel `KERNEL_C_OBJ` menyimpan data terkait alamat atau path dari file tujuan program ANSI C (C89) yang berhubungan dengan kernel program `EorzeOS` dan merupakan hasil dari proses compile `KERNEL_C_SRC` menggunakan `bcc` di mana `KERNEL_C_OBJ` merupakan suatu file objek.
+
+```make
+KERNEL_BIN	= bin/kernel.bin
+```
+12. Variabel `KERNEL_BIN` menyimpan data terkait alamat atau path dari file tujuan dari file objek yang berhubungan dengan kernel program `EorzeOS` dan merupakan hasil dari proses compile `KERNEL_C_OBJ`, `KERNEL_ASM_OBJ`, `SHELL_C_OBJ`, dan `STDLIB_C_OBJ` menggunakan `ld86` di mana `KERNEL_BIN` merupakan suatu file dengan format raw bianry yang dapat dieksekusi oleh processor.
+
+```make
+SHELL_C_SRC	= src/shell.c
+```
+13. Variabel `SHELL_C_SRC` menyimpan data terkait alamat atau path dari file sumber program ANSI C (C89) yang berhubungan dengan shell program `EorzeOS` dan nantinya akan di-compile menggunakan `bcc` menjadi suatu file objek.
+
+```make
+SHELL_C_OBJ	= bin/shell.o
+```
+14. Variabel `SHELL_C_OBJ` menyimpan data terkait alamat atau path dari file tujuan program ANSI C (C89) yang berhubungan dengan shell program `EorzeOS` dan merupakan hasil dari proses compile `SHELL_C_SRC` menggunakan `bcc` di mana `SHELL_C_OBJ` merupakan suatu file objek.
+
+```make
+STDLIB_C_SRC	= src/std_lib.c
+```
+15. Variabel `STDLIB_C_SRC` menyimpan data terkait alamat atau path dari file sumber program ANSI C (C89) yang berhubungan dengan stdlib program `EorzeOS` dan nantinya akan di-compile menggunakan `bcc` menjadi suatu file objek.
+
+```make
+STDLIB_C_OBJ	= bin/std_lib.o
+```
+16. Variabel `STDLIB_C_OBJ` menyimpan data terkait alamat atau path dari file tujuan program ANSI C (C89) yang berhubungan dengan stdlib program `EorzeOS` dan merupakan hasil dari proses compile `STDLIB_C_SRC` menggunakan `bcc` di mana `STDLIB_C_OBJ` merupakan suatu file objek.
+
+```make
+EMULATOR	= bochs
+```
+17. Variabel `EMULATOR` menyimpan data terkait program emulator yang pada kasus ini adalah `bochs` yang merupakan suatu emulator x86 open-source untuk melakukan proses virtualisasi program `EorzeOS`.
+
+```make
+EMULATOR_SRC	= bochsrc.txt
+```
+18. Variabel `EMULATOR_SRC` menyimpan data terkait konfigurasi dari program emulator yang pada kasus ini adalah `bochsrc.txt` dan digunakan agar emulator `bochs` dapat berjalan. File `bochsrc.txt` berisi berbagai pengaturan seperti lokasi file floppy image, jumlah RAM virtual, dan sebagainya.
+
+#### Target dan Rule
+
+### Kendala yang Dialami
+
+### Revisi
