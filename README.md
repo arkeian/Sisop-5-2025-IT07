@@ -180,13 +180,13 @@ https://github.com/user-attachments/assets/1cfa66b1-b2f5-4e3e-a4b2-ec8b012f6fbb
 
 ## Laporan
 
-### Kernel
+### • Kernel
 
-### Stdlib
+### • Stdlib
 
-### Shell
+### • Shell
 
-### Makefile
+### • Makefile
 
 &emsp;Makefile merupakan sebuah file yang memiliki fungsi utama menuliskan daftar instruksi yang digunakan untuk menyederhanakan proses build dan compile program `EorzeOS` yang cenderung memiliki banyak command yang perlu dijalankan agar dapat dieksekusi. Makefile akan hanya menjalankan bagian instruksi yang diperlukan dan tidak akan menjalankan instruksi yang memiliki keluaran yang sudah ada dan tidak berubah dari proses build sebelumnya. Adapun tampilan file makefile yang digunakan pada program `EorzeOS` ini adalah sebagai berikut:
 
@@ -237,12 +237,12 @@ build: prepare bootloader stdlib shell kernel link
 
 Di mana penjelasan setiap bagiannya:
 
-#### Variabel Global
+#### • Variabel Global
 
 ```make
 ASM		= nasm
 ```
-1. Variabel `ASM` menyimpan data terkait compiler yang pada kasus ini adalah `Netwide Assembler` atau disingkat `nasm` dan digunakan untuk proses mengubah kode bahasa assembly menjadi suatu file dengan format raw bianry yang dapat dieksekusi oleh processor.
+1. Variabel `ASM` menyimpan data terkait compiler yang pada kasus ini adalah `Netwide Assembler` atau disingkat `nasm` dan digunakan untuk proses mengubah kode bahasa assembly menjadi suatu file dengan format raw binary yang dapat dieksekusi oleh processor.
 
 ```make
 CC		= bcc
@@ -329,8 +329,75 @@ EMULATOR_SRC	= bochsrc.txt
 ```
 18. Variabel `EMULATOR_SRC` menyimpan data terkait konfigurasi dari program emulator yang pada kasus ini adalah `bochsrc.txt` dan digunakan agar emulator `bochs` dapat berjalan. File `bochsrc.txt` berisi berbagai pengaturan seperti lokasi file floppy image, jumlah RAM virtual, dan sebagainya.
 
-#### Target dan Rule
+#### • Target dan Rule
 
-### Kendala yang Dialami
+```make
+prepare:
+	dd if=/dev/zero of=$(FLOPPY_IMG) bs=512 count=2880
+```
+19. Mendefinisikan target `prepare` yang di dalamnya terdapat suatu rule yang menjalankan program `dd` yang merupakan suatu utilitas bawaan UNIX yang digunakan untuk menyalin dan mengubah data dengan format low-level, menyalin null byte atau `0x00` dari input file `/dev/zero` ke dalam floppy image yang berada pada di mana variabel `FLOPPY_IMG` merujuk dengan ketentuan banyaknya adalah `2880` sektor, di mana masing-masing sektor memiliki ukuran sebesar `512` byte.
 
-### Revisi
+```make
+bootloader:
+	$(ASM) -f bin $(BOOTLOADER_SRC) -o $(BOOTLOADER_BIN)
+	...
+```
+20. Mendefinisikan target `bootloader` yang di dalamnya terdapat beberapa rule di mana yang pertama memiliki fungsi untuk menjalankan program `nasm` untuk melakukan proses compile file kode bahasa assembly yang tersimpan pada di mana variabel `BOOTLOADER_SRC` merujuk dan mengubahnya ke dalam file dengan format raw binary yang dapat dieksekusi oleh processor di mana pada kasus ini file tersebut tersimpan pada file di mana variabel `BOOTLOADER_BIN` merujuk.
+
+
+```make
+...
+	...
+	dd if=$(BOOTLOADER_BIN) of=$(FLOPPY_IMG) bs=512 count=1 conv=notrunc
+```
+21. Setelah file kode bahasa assembly yang tersimpan pada di mana variabel `BOOTLOADER_SRC` merujuk tercompile dan file keluarannya tersimpan pada variabel `BOOTLOADER_BIN`, maka akan dijalankan program selanjutnya di mana program `dd` akan menyalin isi dari di mana variabel `BOOTLOADER_BIN` merujuk ke dalam floppy image yang berada pada di mana variabel `FLOPPY_IMG` merujuk dengan ketentuan banyaknya adalah satu sektor yaitu sektor `0` yang memiliki ukuran `512` byte dan program juga akan memastikan bahwa floppy image keluaran program `dd` tidak akan ter-truncate yang mengakibatkan floppy image hanya memiliki ukuran yang besarnya sama dengan sektor `0` sehingga sektor selanjutnya masih utuh dan tidak terpotong untuk nantinya dapat digunakan untuk memasukkan file kernel program `EorzeOS`.
+
+```make
+stdlib:
+	$(CC) -I$(INCLUDE_PATH) -ansi -c $(STDLIB_C_SRC) -o $(STDLIB_C_OBJ)
+```
+22. Mendefinisikan target `stdlib` yang di dalamnya terdapat suatu rule yang menjalankan program `bcc` yang digunakan untuk melakukan proses compile file kode bahasa ANSI C (C89) yang terletak pada di mana variabel `STDLIB_C_SRC` merujuk dengan menyertakan file-file header yang tersimpan pada direktori `/include` ke dalam bentuk file objek di mana nantinya akan tersimpan pada di mana variabel `STDLIB_C_OBJ` merujuk.
+
+```make
+shell:
+	$(CC) -I$(INCLUDE_PATH) -ansi -c $(SHELL_C_SRC) -o $(SHELL_C_OBJ)
+```
+23. Mendefinisikan target `shell` yang di dalamnya terdapat suatu rule yang menjalankan program `bcc` yang digunakan untuk melakukan proses compile file kode bahasa ANSI C (C89) yang terletak pada di mana variabel `SHELL_C_SRC` merujuk dengan menyertakan file-file header yang tersimpan pada direktori `/include` ke dalam bentuk file objek di mana nantinya akan tersimpan pada di mana variabel `SHELL_C_OBJ` merujuk.
+
+```make
+kernel:
+	$(ASM) -f as86 $(KERNEL_ASM_SRC) -o $(KERNEL_ASM_OBJ)
+	...
+```
+24. Mendefinisikan target `kernel` yang di dalamnya terdapat beberapa rule di mana yang pertama memiliki fungsi untuk menjalankan program `nasm` untuk melakukan proses compile file kode bahasa assembly yang tersimpan pada di mana variabel `KERNEL_ASM_SRC` merujuk dan mengubahnya ke dalam file objek di mana pada kasus ini file tersebut tersimpan pada file di mana variabel `KERNEL_ASM_OBJ` merujuk.
+
+```make
+...
+	...
+	$(CC) -I$(INCLUDE_PATH) -ansi -c $(KERNEL_C_SRC) -o $(KERNEL_C_OBJ)
+	...
+```
+25. Setelah file kode bahasa assembly yang tersimpan pada di mana variabel `KERNEL_ASM_SRC` merujuk tercompile dan file keluarannya tersimpan pada di mana variabel `KERNEL_ASM_OBJ` merujuk, maka akan dijalankan program selanjutnya di mana program `bcc` akan melakukan proses compile file kode bahasa ANSI C (C89) yang terletak pada di mana variabel `KERNEL_C_SRC` merujuk dengan menyertakan file-file header yang tersimpan pada direktori `/include` ke dalam bentuk file objek di mana nantinya akan tersimpan pada di mana variabel `KERNEL_C_OBJ` merujuk.
+
+```make
+...
+	...
+	$(LINKER) -o $(KERNEL_BIN) -d $(KERNEL_C_OBJ) $(KERNEL_ASM_OBJ) $(SHELL_C_OBJ) $(STDLIB_C_OBJ)
+```
+26. Setelah file kode bahasa ANSI C (C89) yang tersimpan pada di mana variabel `KERNEL_C_SRC` merujuk tercompile dan file keluarannya tersimpan pada di mana variabel `KERNEL_C_OBJ` merujuk, maka akan dijalankan program selanjutnya di mana program `ld86` akan melakukan proses penggabungan file-file objek program ANSI C (C89) yang telah di-compile oleh `bcc` menjadi suatu file biner yang di mana nantinya akan tersimpan pada di mana variabel `KERNEL_BIN` merujuk.
+
+```make
+link:
+	dd if=$(KERNEL_BIN) of=$(FLOPPY_IMG) bs=512 seek=1 conv=notrunc
+```
+27. Mendefinisikan target `link` yang di dalamnya terdapat suatu rule yang menjalankan program `dd` yang akan akan menyalin isi dari di mana variabel `KERNEL_BIN` merujuk ke dalam floppy image yang berada pada di mana variabel `FLOPPY_IMG` merujuk dengan ketentuan seek atau dimulai dari sektor `1` dan akan memenuhi sektor-sektor selanjutnya yang masing-masing memiliki ukuran `512` byte hingga file kernel sepenuhnya dapat dimasukkan ke dalam floppy image. Selain itu, program juga akan memastikan bahwa floppy image keluaran program `dd` tidak akan ter-truncate yang mengakibatkan floppy image hanya memiliki ukuran yang besarnya sama dengan besar file bootloader dan kernel sehingga sektor selanjutnya masih utuh dan tidak terpotong.
+
+```make
+build: prepare bootloader stdlib shell kernel link
+	$(EMULATOR) -f $(EMULATOR_SRC)
+```
+28. Mendefinisikan target utama `build` yang akan menjalankan target-target yang dicantumkan secara berurutan. Selain itu, juga di dalamnya terdapat suatu rule yang menjalankan program `bochs` yang akan menjalankan emulator untuk virtualisasi program `EorzeOS` yang sudah utuh dengan menggunakan file konfigurasi `bochsrc.txt` sebagai acuannya.
+
+### • Kendala yang Dialami
+
+### • Revisi
