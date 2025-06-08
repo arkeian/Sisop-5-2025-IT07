@@ -370,17 +370,17 @@ Di mana langkah implementasinya:
 ```c
 #define SEGMENT     0xB000
 ```
-2. Mendefinisikan makro `SEGMENT` yang merepresentasikan alamat segmen video memori yaitu `0XB000` pada arsitektur x86 di mana digunakan untuk tampilan dengan mode teks monokrom dan tidak berwarna layaknya `0xB800`.
+2. Mendefinisikan makro `SEGMENT` yang merepresentasikan alamat segmen video memori yaitu `0XB000` pada arsitektur x86 di mana digunakan untuk tampilan VGA dengan mode teks.
 
 ```c
 #define ADDRESS     0x8000
 ```
-3. Mendefinisikan makro `ADDRESS` yang merepresentasikan alamat offset awal di mana segmen video memori yang merupakan tempat karakter ASCII pertama pada layar akan ditampilkan.
+3. Mendefinisikan makro `ADDRESS` yang merepresentasikan alamat offset awal segmen video memori yaitu `0x8000` yang merupakan tempat karakter ASCII pertama pada layar akan ditampilkan.
 
 ```c
 #define INT_VID     0x10
 ```
-4. Mendefinisikan makro `INT_VID` yang merepresentasikan layanan interupsi video untuk BIOS dengan ineteger `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan karakter ASCII pada layar menggunakan function `interrupt()`.
+4. Mendefinisikan makro `INT_VID` yang merepresentasikan layanan interupsi video untuk BIOS dengan integer `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan karakter ASCII pada layar menggunakan function `interrupt()`.
 
 ```c
 #define INT_KBD     0x16
@@ -390,53 +390,55 @@ Di mana langkah implementasinya:
 ```c
 #define TELETYPE    0X0E
 ```
-6. Mendefinisikan makro `TELETYPE` yang merepresentasikan subfungsi dari integer `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan satu karakter ASCII ke layar dengan keluaran teletype (mesin ketik) dan setelahnya akan menggeser kursor ke kanan sebanyak satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AH`.
+6. Mendefinisikan makro `TELETYPE` dengan nilai `0x0E` yang merepresentasikan suatu subfungsi dari integer `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan satu karakter ASCII ke layar dengan keluaran teletype (mesin ketik) dan setelahnya akan menggeser kursor ke kanan sebanyak satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AH`.
+  
+	Namun, pada program `EorzeOS` subfungsi `TELETYPE` tidak digunakan karena pada proses penampilan karakter ASCII ke layar tidak menggunakan function `interrupt()`, melainkan menggunakan pendekatan manual dengan proses perhitungan offset pada layar ntuk menentukan letak di mana karakter ASCII akan diletakkan yang 		implementasinya diterapkan pada function `putc()` yang pada dasarnya dapat dilakukan dengan bantuan function `putInMemory()`.
 
 ```c
 #define KEYBOARD    0X00
 ```
-7. Mendefinisikan makro `KEYBOARD` yang merepresentasikan subfungsi dari integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk menunggu keypress dari keyboard dan akan membaca satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AL`.
+7. Mendefinisikan makro `KEYBOARD` dengan nilai `0x00` yang merepresentasikan suatu subfungsi dari integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk menunggu keypress dari keyboard dan akan membaca satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AL`.
 
 ```c
 #define MASK        0x00FF
 ```
-8. Mendefinisikan makro `MASK` yang merepresentasikan bitmask register `AX` yang merupakan register 16-bit yang terdiri atas dua register 8-bit yaitu register `AL` dan `AH` di mana dalam penerapannya digunakan untuk mengambil low byte dari register `AX` yang pada kasus ini merupakan register `AL` yang memuat karakter ASCII dan menghapus high byte dari register `AX` yang pada kasus ini merupakan register `AH`.
+8. Mendefinisikan makro `MASK` dengan nilai `0x00FF` yang merepresentasikan bitmask register `AX` yang merupakan register 16-bit yang terdiri atas dua register 8-bit yaitu register `AL` dan `AH` di mana dalam penerapannya digunakan untuk mengambil low byte dari register `AX` yang pada kasus ini merupakan register `AL` yang memuat karakter ASCII dan menghapus high byte dari register `AX` yang pada kasus ini merupakan register `AH`.
 
 ```c
 #define VALID_ASCII 0X20
 ```
-9. Mendefinisikan makro `VALID_ASCII` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+9. Mendefinisikan makro `VALID_ASCII` yang merepresentasikan suatu nilai heksadesimal di mana dalam penerapannya digunakan untuk mendefinisikan batas bawah untuk nilai  ASCII suatu karakter valid atau yang diperbolehkan untuk ditampilkan pada layar yang di mana pada program `EorzeOS`, batas bawahnya adalah `0x20` atau dalam format desimal adalah `32`.
 
 ```c
 #define SCROLL      0x06
 ```
-10. Mendefinisikan makro `SCROLL` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+10. Mendefinisikan makro `SCROLL` dengan nilai `0x06` yang merepresentasikan suatu fungsi utama dari integer `0x10` atau `10h` di mana pada kasus program `EorzeOS` digunakan pada register `AH` yang merupakan high byte dari register `AX` yang digunakan untuk memungkinkan dilakukannya proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
 
 ```c
 #define SCROLL_ONE  0x01
 ```
-11. Mendefinisikan makro `SCROLL_ONE` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+11. Mendefinisikan makro `SCROLL_ONE` dengan nilai `0x01` yang merepresentasikan suatu parameter nilai di mana pada kasus program `EorzeOS` digunakan pada register `AL` yang merupakan low byte dari register `AX` yang memuat banyaknya baris yang akan digeser ke atas saat melakukan proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
 
 ```c
 #define IGNORE      0x00
 ```
-12. Mendefinisikan makro `IGNORE` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+12. Mendefinisikan makro `IGNORE` dengan nilai `0x00` yang merepresentasikan suatu nilai placeholder di mana dalam penerapannya digunakan untuk menyatakan parameter nilai yang tidak dibutuhkan dan diabaikan oleh BIOS yang pada kasus program `EorzeOS` digunakan pada register `BL` yang merupakan low byte dari register `BX` yang memuat nomor halaman dari layar saat melakukan proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS dengan integer `0x10` atau `10h` menggunakan function `interrupt()`.
 
 ```c
 #define MAX_COLUMNS 80
 #define MAX_ROWS    25
 ```
-13. Mendefinisikan makro `MAX_COLUMNS` dan `MAX_ROWS` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+13. Mendefinisikan makro `MAX_COLUMNS` dan `MAX_ROWS` yang merepresentasikan suatu konstanta di mana dalam penerapannya digunakan untuk mendefinisikan batas maksimum ukuran layar yang di mana pada kasus program `EorzeOS`, ukuran yang ditentukan adalah ukuran standar VGA dengan mode teks yaitu `80` kolom dengan `25` baris.
 
 ```c
 #define TAB_SIZE    4
 ```
-14. Mendefinisikan makro `TAB_SIZE` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+14. Mendefinisikan makro `TAB_SIZE` yang merepresentasikan suatu konstanta di mana dalam penerapannya digunakan untuk mendefinisikan banyaknya spasi yang akan ditampilkan ke layar saat user menakan tombol `KEY_TAB` di mana pada kasus program `EorzeOS`, banyak spasi yang digunakan adalah `4` karakter.
 
 ```c
 #define BUFFER      128
 ```
-15. Mendefinisikan makro `BUFFER` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+15. Mendefinisikan makro `BUFFER` yang merepresentasikan suatu konstanta di mana dalam penerapannya digunakan untuk mendefinisikan batas maksimum area memori yang digunakan untuk penampungan sementara karakter input yang dimasukkan melalui function `readString()` yang di mana pada kasus program `EorzeOS` besarnya adalah `127` karakter ditambah dengan satu `\0`.
 
 ```C
 static unsigned int _xPos = 0, _yPos = 0;
