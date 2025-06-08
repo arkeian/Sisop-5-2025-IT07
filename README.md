@@ -115,7 +115,7 @@ Pada suatu hari, anda merasa sangat lelah dari segala macam praktikum yang sudah
    gurt> sygau
    ```
 
-8. Perusahaan mesin "Garlond Ironworks" tiba-tiba lelah mengurus permintaan senjata perang untuk orang ke-148649813234 yang berusaha menghadapi final boss yang sama, sehingga mereka perlu bantuan kamu untuk melengkapi `Makefile` yang diberikan dengan command-command yang sesuai untuk compile seluruh operating system ini.
+7. Perusahaan mesin "Garlond Ironworks" tiba-tiba lelah mengurus permintaan senjata perang untuk orang ke-148649813234 yang berusaha menghadapi final boss yang sama, sehingga mereka perlu bantuan kamu untuk melengkapi `Makefile` yang diberikan dengan command-command yang sesuai untuk compile seluruh operating system ini.
 
 ## Petunjuk Soal
 
@@ -181,6 +181,291 @@ https://github.com/user-attachments/assets/1cfa66b1-b2f5-4e3e-a4b2-ec8b012f6fbb
 ## Laporan
 
 ### • Kernel
+
+<p align="justify">  
+&emsp;&emsp;Pada program <code>EorzeOS</code>, kernel dibagi menjadi dua, yaitu <code>kernel.asm</code> yang merupakan program dengan basis bahasa assembly yang berinteraksi langsung secara low-level dengan perangkat keras komputer dan <code>kernel.c</code>, program dengan basis bahasa ANSI C (C89) yang memiliki fungsi sebagai program yang menjadi penghubung antara <code>kernel.asm</code> dengan program yang berinteraksi secara top-level dengan user, yang pada kasus <code>EorzeOS</code> merupakan program <code>shell.c</code>.  
+</p>  
+
+<p align="justify">  
+&emsp;&emsp;Adapun pada penerapan sistem operasi kali ini, kita hanya diperintahkan untuk membuat dan mengimplementasikan program <code>kernel.c</code>, di mana untuk membuat <code>kernel.c</code> dibuatlah tiga function utama yaitu <code>printString()</code>, <code>readString()</code>, dan <code>clearScreen()</code> yang dalam implementasinya dibantu oleh tiga helper function di mana di antaranya terdiri atas <code>repositionXY()</code>, <code>scroll()</code>, dan <code>putc()</code>. Selain itu, terdapat beberapa function eksternal yang digunakan dengan implementasinya terletak pada program <code>kernel.asm</code> yang di antaranya terdiri atas <code>putInMemory()</code> dan <code>interrupt()</code>.  
+</p>
+
+Adapun tampilan `kernel.c` secara keseluruhan adalah sebagai berikut:
+
+```c
+#include "shell.h"
+#include "kernel.h"
+
+#define SEGMENT     0xB000
+#define ADDRESS     0x8000
+#define INT_VID     0x10
+#define INT_KBD     0x16
+#define TELETYPE    0X0E
+#define KEYBOARD    0X00
+#define MASK        0x00FF
+#define VALID_ASCII 0X20
+#define SCROLL      0x06
+#define SCROLL_ONE  0x01
+#define IGNORE      0x00
+#define MAX_COLUMNS 80
+#define MAX_ROWS    25
+#define TAB_SIZE    4
+#define BUFFER      128
+
+static unsigned int _xPos = 0, _yPos = 0;
+static unsigned int _xStart = 0, _yStart = 0;
+static unsigned char _color = 0x0F;
+
+enum KEYCODE {
+  KEY_NEWLINE   = '\n',
+  KEY_RETURN    = '\r',
+  KEY_TAB       = 0x09,
+  KEY_BACKSPACE = 0x08
+};
+
+void main() {
+  clearScreen();
+  shell();
+}
+
+void repositionXY(unsigned int x, unsigned int y) {
+  _xPos = x;
+  _yPos = y;
+  _xStart = _xPos;
+  _yStart = _yPos;
+}
+
+void scroll() {
+  unsigned int ax, bx, cx, dx;
+
+  ax = (SCROLL << 8) | SCROLL_ONE;
+  bx = (_color << 8) | IGNORE;
+  cx = (0 << 8) | 0;
+  dx = ((MAX_ROWS - 1) << 8) | (MAX_COLUMNS - 1);
+
+  interrupt(INT_VID, ax, bx, cx, dx);
+
+  repositionXY(0, MAX_ROWS - 1);
+}
+
+void putc(unsigned char c) {
+  unsigned char *ptr;
+  unsigned int offset;
+
+  if (c == 0) {
+    return;
+  }  
+  else if (c == KEY_NEWLINE) {
+    _xPos = _xStart;
+    _yPos++;
+    return;
+  }
+
+  if (_xPos >= MAX_COLUMNS) {
+    _xPos = _xStart;
+    _yPos++;
+  }  
+
+  if (_yPos >= MAX_ROWS) {
+    scroll();
+  }  
+
+  offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
+
+  putInMemory(SEGMENT, offset, c);
+  putInMemory(SEGMENT, offset + 1, _color);
+
+  _xPos++;
+}  
+
+
+void printString(char *str)
+{
+  if (str == 0) {
+    return;
+  }  
+
+  while(*str) {
+    putc(*str);
+    str++;
+  }  
+}  
+
+void readString(char *buf) {
+  unsigned char c;
+  int bufPos = 0;
+  unsigned int ax;
+  unsigned int offset;
+  int i;
+
+  while (1) {
+    ax = interrupt(INT_KBD, KEYBOARD, 0, 0, 0);
+    c = (unsigned char)(ax & MASK);
+
+    if (c == KEY_RETURN) {
+      buf[bufPos] = '\0';
+      putc(KEY_NEWLINE);
+      break;
+    }
+    else if (c == KEY_TAB) {
+      for (i = 0; i < TAB_SIZE; i++) {
+        buf[bufPos] = ' ';
+        bufPos++;
+        putc(' ');
+      }
+    }  
+    else if (c == KEY_BACKSPACE) {
+      if (bufPos > 0) {
+        bufPos--;
+
+        if (_xPos > _xStart) {
+          _xPos--;
+        }  
+        else if (_yPos > _yStart) {
+          _yPos--;
+          _xPos = MAX_COLUMNS - 1;
+        }  
+
+        offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
+  
+        putInMemory(SEGMENT, offset, ' ');
+        putInMemory(SEGMENT, offset + 1, _color);
+      }  
+    }  
+    else {
+      if (c >= VALID_ASCII && bufPos < BUFFER - 1) {
+        buf[bufPos] = c;
+        bufPos++;
+        putc(c);
+      }  
+    }  
+  }  
+}  
+
+void clearScreen() {
+  unsigned int offset;
+  int i, j;
+  
+  for (i = 0; i < MAX_ROWS; i++) {
+    for (j = 0; j < MAX_COLUMNS; j++) {
+      offset = ADDRESS + (i * MAX_COLUMNS + j) * 2;
+
+      putInMemory(SEGMENT, offset, ' ');
+      putInMemory(SEGMENT, offset + 1, _color);
+    }  
+  }  
+
+  repositionXY(0, 0);
+}
+```
+
+Di mana langkah implementasinya:
+
+```c
+#include "shell.h"
+#include "kernel.h"
+```
+1. Menyertakan file-file header yang didefinisikan pada direktori `/include` di mana file header tersebut menyediakan elemen seperti deklarasi fungsi, makro, beserta definisi konstanta yang diperlukan dalam implementasi program `kernel.c`.
+
+```c
+#define SEGMENT     0xB000
+```
+2. Mendefinisikan makro `SEGMENT` yang merepresentasikan alamat segmen video memori yaitu `0XB000` pada arsitektur x86 di mana digunakan untuk tampilan dengan mode teks monokrom dan tidak berwarna layaknya `0xB800`.
+
+```c
+#define ADDRESS     0x8000
+```
+3. Mendefinisikan makro `ADDRESS` yang merepresentasikan alamat offset awal di mana segmen video memori yang merupakan tempat karakter ASCII pertama pada layar akan ditampilkan.
+
+```c
+#define INT_VID     0x10
+```
+4. Mendefinisikan makro `INT_VID` yang merepresentasikan layanan interupsi video untuk BIOS dengan ineteger `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan karakter ASCII pada layar menggunakan function `interrupt()`.
+
+```c
+#define INT_KBD     0x16
+```
+5. Mendefinisikan makro `INT_KBD` yang merepresentasikan layanan interupsi keyboard untuk BIOS dengan integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk melakukan proses interaksi dengan keyboard seperti membaca keypress menggunakan function `interrupt()`.
+
+```c
+#define TELETYPE    0X0E
+```
+6. Mendefinisikan makro `TELETYPE` yang merepresentasikan subfungsi dari integer `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan satu karakter ASCII ke layar dengan keluaran teletype (mesin ketik) dan setelahnya akan menggeser kursor ke kanan sebanyak satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AH`.
+
+```c
+#define KEYBOARD    0X00
+```
+7. Mendefinisikan makro `KEYBOARD` yang merepresentasikan subfungsi dari integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk menunggu keypress dari keyboard dan akan membaca satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AL`.
+
+```c
+#define MASK        0x00FF
+```
+8. Mendefinisikan makro `MASK` yang merepresentasikan bitmask register `AX` yang merupakan register 16-bit yang terdiri atas dua register 8-bit yaitu register `AL` dan `AH` di mana dalam penerapannya digunakan untuk mengambil low byte dari register `AX` yang pada kasus ini merupakan register `AL` yang memuat karakter ASCII dan menghapus high byte dari register `AX` yang pada kasus ini merupakan register `AH`.
+
+```c
+#define VALID_ASCII 0X20
+```
+9. Mendefinisikan makro `VALID_ASCII` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+#define SCROLL      0x06
+```
+10. Mendefinisikan makro `SCROLL` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+#define SCROLL_ONE  0x01
+```
+11. Mendefinisikan makro `SCROLL_ONE` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+#define IGNORE      0x00
+```
+12. Mendefinisikan makro `IGNORE` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+#define MAX_COLUMNS 80
+#define MAX_ROWS    25
+```
+13. Mendefinisikan makro `MAX_COLUMNS` dan `MAX_ROWS` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+#define TAB_SIZE    4
+```
+14. Mendefinisikan makro `TAB_SIZE` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+#define BUFFER      128
+```
+15. Mendefinisikan makro `BUFFER` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```C
+static unsigned int _xPos = 0, _yPos = 0;
+```
+16. Mendefinisikan variabel global `_xPos` dan `_yPos` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+static unsigned int _xStart = 0, _yStart = 0;
+```
+17. Mendefinisikan variabel global `_xStart` dan `_yStart` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+static unsigned char _color = 0x0F;
+```
+18. Mendefinisikan variabel global `_color` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+
+```c
+enum KEYCODE {
+  KEY_NEWLINE   = '\n',
+  KEY_RETURN    = '\r',
+  KEY_TAB       = 0x09,
+  KEY_BACKSPACE = 0x08
+};
+```
+19. Mendefinisikan enumerasi nama-nama simbolik untuk beberapa `KEYCODE` atau karakter kontrol di mana di antaranya terdiri atas:
+	- `KEY_NEWLINE`&emsp;&emsp;: yang merepresentasikan ...
+	- `KEY_RETURN`&emsp;&emsp;&ensp;: yang merepresentasikan ...
+	- `KEY_TAB`&emsp;&emsp;&emsp;&emsp;: yang merepresentasikan ...
+	- `KEY_BACKSPACE`&emsp;: yang merepresentasikan ...
 
 ### • Stdlib
 
