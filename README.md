@@ -361,6 +361,8 @@ void clearScreen() {
 
 Di mana langkah implementasinya:
 
+#### • Preprocessors
+
 ```c
 #include "shell.h"
 #include "kernel.h"
@@ -390,19 +392,19 @@ Di mana langkah implementasinya:
 ```c
 #define TELETYPE    0X0E
 ```
-6. Mendefinisikan makro `TELETYPE` dengan nilai `0x0E` yang merepresentasikan suatu subfungsi dari integer `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan satu karakter ASCII ke layar dengan keluaran teletype (mesin ketik) dan setelahnya akan menggeser kursor ke kanan sebanyak satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AH`.
+6. Mendefinisikan makro `TELETYPE` dengan value `0x0E` yang merepresentasikan suatu subfungsi dari integer `0x10` atau `10h` di mana dalam penerapannya digunakan untuk menampilkan satu karakter ASCII ke layar dengan keluaran teletype (mesin ketik) dan setelahnya akan menggeser kursor ke kanan sebanyak satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AH`.
   
 	Namun, pada program `EorzeOS` subfungsi `TELETYPE` tidak digunakan karena pada proses penampilan karakter ASCII ke layar tidak menggunakan function `interrupt()`, melainkan menggunakan pendekatan manual dengan proses perhitungan offset pada layar ntuk menentukan letak di mana karakter ASCII akan diletakkan yang 		implementasinya diterapkan pada function `putc()` yang pada dasarnya dapat dilakukan dengan bantuan function `putInMemory()`.
 
 ```c
 #define KEYBOARD    0X00
 ```
-7. Mendefinisikan makro `KEYBOARD` dengan nilai `0x00` yang merepresentasikan suatu subfungsi dari integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk menunggu keypress dari keyboard dan akan membaca satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AL`.
+7. Mendefinisikan makro `KEYBOARD` dengan value `0x00` yang merepresentasikan suatu subfungsi dari integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk menunggu keypress dari keyboard dan akan membaca satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AL`.
 
 ```c
 #define MASK        0x00FF
 ```
-8. Mendefinisikan makro `MASK` dengan nilai `0x00FF` yang merepresentasikan bitmask register `AX` yang merupakan register 16-bit yang terdiri atas dua register 8-bit yaitu register `AL` dan `AH` di mana dalam penerapannya digunakan untuk mengambil low byte dari register `AX` yang pada kasus ini merupakan register `AL` yang memuat karakter ASCII dan menghapus high byte dari register `AX` yang pada kasus ini merupakan register `AH`.
+8. Mendefinisikan makro `MASK` dengan value `0x00FF` yang merepresentasikan bitmask register `AX` yang merupakan register 16-bit yang terdiri atas dua register 8-bit yaitu register `AL` dan `AH` di mana dalam penerapannya digunakan untuk mengambil low byte dari register `AX` yang pada kasus ini merupakan register `AL` yang memuat karakter ASCII dan menghapus high byte dari register `AX` yang pada kasus ini merupakan register `AH`.
 
 ```c
 #define VALID_ASCII 0X20
@@ -412,17 +414,17 @@ Di mana langkah implementasinya:
 ```c
 #define SCROLL      0x06
 ```
-10. Mendefinisikan makro `SCROLL` dengan nilai `0x06` yang merepresentasikan suatu fungsi utama dari integer `0x10` atau `10h` di mana pada kasus program `EorzeOS` digunakan pada register `AH` yang merupakan high byte dari register `AX` yang digunakan untuk memungkinkan dilakukannya proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
+10. Mendefinisikan makro `SCROLL` dengan value `0x06` yang merepresentasikan suatu fungsi utama dari integer `0x10` atau `10h` di mana pada kasus program `EorzeOS` digunakan pada register `AH` yang merupakan high byte dari register `AX` yang digunakan untuk memungkinkan dilakukannya proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
 
 ```c
 #define SCROLL_ONE  0x01
 ```
-11. Mendefinisikan makro `SCROLL_ONE` dengan nilai `0x01` yang merepresentasikan suatu parameter nilai di mana pada kasus program `EorzeOS` digunakan pada register `AL` yang merupakan low byte dari register `AX` yang memuat banyaknya baris yang akan digeser ke atas saat melakukan proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
+11. Mendefinisikan makro `SCROLL_ONE` dengan value `0x01` yang merepresentasikan suatu nilai parameter di mana pada kasus program `EorzeOS` digunakan pada register `AL` yang merupakan low byte dari register `AX` yang memuat banyaknya baris yang akan digeser ke atas saat melakukan proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
 
 ```c
 #define IGNORE      0x00
 ```
-12. Mendefinisikan makro `IGNORE` dengan nilai `0x00` yang merepresentasikan suatu nilai placeholder di mana dalam penerapannya digunakan untuk menyatakan parameter nilai yang tidak dibutuhkan dan diabaikan oleh BIOS yang pada kasus program `EorzeOS` digunakan pada register `BL` yang merupakan low byte dari register `BX` yang memuat nomor halaman dari layar saat melakukan proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS dengan integer `0x10` atau `10h` menggunakan function `interrupt()`.
+12. Mendefinisikan makro `IGNORE` dengan value `0x00` yang merepresentasikan suatu nilai placeholder di mana dalam penerapannya digunakan untuk menyatakan nilai parameter yang tidak dibutuhkan dan diabaikan oleh BIOS yang pada kasus program `EorzeOS` digunakan pada register `BL` yang merupakan low byte dari register `BX` yang memuat nomor halaman dari layar yang pada kasus program `EorzeOS` dinyatakan dengan `0` saat melakukan proses scrolling BIOS menggunakan function `scroll()` di mana pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS dengan integer `0x10` atau `10h` menggunakan function `interrupt()`.
 
 ```c
 #define MAX_COLUMNS 80
@@ -443,17 +445,17 @@ Di mana langkah implementasinya:
 ```C
 static unsigned int _xPos = 0, _yPos = 0;
 ```
-16. Mendefinisikan variabel global `_xPos` dan `_yPos` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+16. Mendefinisikan variabel global `_xPos` dan `_yPos` dengan tipe data `unsigned int` yang bersifat statis atau dapat mempertahankan nilai valuenya saat pemanggilan fungsi yang berbeda-beda di mana dalam penerapannya variabel tersebut digunakan merepresentasikan posisi kursor terhadap layar saat ini dalam representasi koordinat (x, y) atau (kolom, baris) di mana pada kasus program `EorzeOS` dimulai pada baris dan kolom dengan indeks `0`.
 
 ```c
 static unsigned int _xStart = 0, _yStart = 0;
 ```
-17. Mendefinisikan variabel global `_xStart` dan `_yStart` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+17. Mendefinisikan variabel global `_xStart` dan `_yStart` dengan tipe data `unsigned int` yang bersifat statis atau dapat mempertahankan nilai valuenya saat pemanggilan fungsi yang berbeda-beda di mana dalam penerapannya variabel tersebut digunakan merepresentasikan posisi awal kursor terhadap layar dalam representasi koordinat (x, y) atau (kolom, baris) di mana pada kasus program `EorzeOS` terletak pada baris dan kolom dengan indeks `0`. 
 
 ```c
 static unsigned char _color = 0x0F;
 ```
-18. Mendefinisikan variabel global `_color` yang merepresentasikan ... di mana dalam penerapannya digunakan untuk ...
+18. Mendefinisikan variabel global `_color` dengan tipe data `unsigned char` yang bersifat statis atau dapat mempertahankan nilai valuenya saat pemanggilan fungsi yang berbeda-beda di mana dalam penerapannya variabel tersebut digunakan merepresentasikan atribut warna dari suatu karakter ASCII yang ditampilkan pada layar VGA di mana pada kasus program `EorzeOS` warna yang ditampilkan adalah warna hitam untuk background-nya dan warna putih untuk foreground-nya.
 
 ```c
 enum KEYCODE {
@@ -464,10 +466,120 @@ enum KEYCODE {
 };
 ```
 19. Mendefinisikan enumerasi nama-nama simbolik untuk beberapa `KEYCODE` atau karakter kontrol di mana di antaranya terdiri atas:
-	- `KEY_NEWLINE`&emsp;&emsp;: yang merepresentasikan ...
-	- `KEY_RETURN`&emsp;&emsp;&ensp;: yang merepresentasikan ...
-	- `KEY_TAB`&emsp;&emsp;&emsp;&emsp;: yang merepresentasikan ...
-	- `KEY_BACKSPACE`&emsp;: yang merepresentasikan ...
+	- `KEY_NEWLINE`: yang merepresentasikan karakter `NEWLINE` di mana dalam penerapannya karakter kontrol tersebut digunakan untuk mengindikasikan pemindahan posisi `_yPos` satu baris ke bawah.
+	- `KEY_RETURN`: yang merepresentasikan tombol `ENTER` di mana dalam penerapannya karakter kontrol tersebut digunakan untuk mengindikasikan akhir dari suatu proses input pada `BUFFER` menggunakan `readString()` dan mengembalikan posisi `_xPos` kembali ke awal sesuai dengan variabel `_xStart`.
+	- `KEY_TAB`: yang merepresentasikan tombol `TAB` atau tabulasi horizontal di mana dalam penerapannya karakter tersebut digunakan untuk mengindikasikan penambahan spasi sebanyak `TAB_SIZE` secara horizontal mulai dari di mana kursor berada saat itu.
+	- `KEY_BACKSPACE`: yang merepresentasikan tombol `BACKSPACE` di mana dalam penerapannya karakter tersebut digunakan untuk mengindikasikan penghapusan karakter sebelum di mana kursor berada saat itu dan memundurkan posisi kursor tersebut sebanyak satu karakter.
+
+#### • Main
+
+```c
+void main() {
+	...
+}
+```
+20. Mendeklarasikan function `main()` dengan tipe `void` dan tanpa menggunakan variabel parameter.
+
+```c
+clearScreen();
+shell();
+```
+21. Memanggil function `clearScreen()` yang didefinisikan pada program `kernel.c` dan function `shell()` yang didefinisikan pada program `shell.c`.
+
+#### • Reposition X and Y
+
+```c
+void repositionXY(unsigned int x, unsigned int y) {
+	...
+}
+```
+22. Mendeklarasikan function `repositionXY()` dengan ketentuan parameter:
+	- `unsigned int x`: Target koordinat posisi x atau kolom dari layar di mana dalam penerapannya yang akan menjadi value baru dari variabel `_xPos` dan `_xStart`.
+ 	- `unsigned int y`: Target koordinat posisi y atau baris dari layar di mana dalam penerapannya yang akan menjadi value baru dari variabel `_yPos` dan `_yStart`.
+
+```c
+_xPos = x;
+...
+_xStart = _xPos;
+...
+```
+23. Mengubah value koordinat posisi yang disimpan oleh variabel `_xPos` dan `_xStart` dengan nilai yang ditentukan oleh variabel parameter `x`.
+
+```c
+...
+_yPos = y;
+...
+_yStart = _yPos;
+```
+24. Mengubah value koordinat posisi yang disimpan oleh variabel `_yPos` dan `_yStart` dengan nilai yang ditentukan oleh variabel parameter `y`.
+
+#### • Scroll
+
+```c
+void scroll() {
+	...
+}
+```
+25. Mendeklarasikan function `scroll()` dengan tipe `void` dan tanpa menggunakan variabel parameter.
+
+```c
+unsigned int ax, bx, cx, dx;
+```
+26. Mendeklarasikan variabel-variabel di mana dalam penerapannya digunakan untuk menyimpan data terkait register yang digunakan di mana di antaranya yaitu register `AX`, `BX`, `CX`, dan `DX` yang merupakan register 16-bit dengan tipe data `unsigned int` untuk menjalankan proses scrolling BIOS menggunakan function `scroll()`.
+
+```c
+ax = (SCROLL << 8) | SCROLL_ONE;
+```
+27. Memasukkan value pada register 16-bit `AX` yang merupakan gabungan antara register 8-bit high byte `AH` di mana dalam penerapannya digunakan sebagai fungsi utama yang menyimpan value `SCROLL` atau `0x06` yang memungkinkan dilakukannya proses scrolling BIOS dan register 8-bit low byte `AL` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value `SCROLL_ONE` atau `0x01` yang memuat banyaknya baris yang akan digeser ke atas saat melakukan proses scrolling BIOS.
+
+```c
+bx = (_color << 8) | IGNORE;
+```
+28. Memasukkan value pada register 16-bit `BX` yang merupakan gabungan antara register 8-bit high byte `BH` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value atribut warna dari suatu karakter ASCII yang ditampilkan pada layar VGA dan register 8-bit low byte `BL` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value `IGNORE` atau `0x00` yang memuat nomor halaman dari layar saat melakukan proses scrolling BIOS.
+
+```c
+cx = (0 << 8) | 0;
+```
+29. Memasukkan value pada register 16-bit `CX` yang merupakan gabungan antara register 8-bit high byte `CH` di mana dalam penerapannya digunakan sebagai ... dan register 8-bit low byte `CL` di mana dalam penerapannya digunakan sebagai ...
+
+```c
+dx = ((MAX_ROWS - 1) << 8) | (MAX_COLUMNS - 1);
+```
+30. Memasukkan value pada register 16-bit `DX` yang merupakan gabungan antara register 8-bit high byte `DH` di mana dalam penerapannya digunakan sebagai ... dan register 8-bit low byte `DL` di mana dalam penerapannya digunakan sebagai ...
+
+```c
+interrupt(INT_VID, ax, bx, cx, dx);
+```
+31. Memanggil function eksternal `interrupt()` dari program `kernel.asm` di mana dalam penerapannya digunakan ...
+
+```c
+repositionXY(0, MAX_ROWS - 1);
+```
+32. Memanggil function `repositionXY()` untuk mengubah value koordinat posisi x atau kolom menjadi `0` atau kembali ke awal dan koordinat posisi y atau baris menjadi `MAX_ROWS - 1` atau baris terakhir dari layar.
+
+#### • Put Character
+
+```c
+void putc(unsigned char c) {
+	...
+}
+```
+33. Mendeklarasikan function `putc()` dengan ketentuan parameter:
+	- `unsigned char c`: Suatu karakter ASCII yang akan ditampilkan pada layar.
+
+```c
+unsigned char *ptr;
+```
+34. Mendeklarasikan variabel pointer dengan tipe data `unsigned char` di mana dalam penerapannya digunakan ...
+
+```c
+unsigned int offset;
+```
+35. Mendeklarasikan variabel `offset` dengan tipe data `unsigned int` di mana dalam penerapannya digunakan ...
+
+#### • Print String
+#### • Read String
+#### • Clear Screen
 
 ### • Stdlib
 
@@ -475,7 +587,11 @@ enum KEYCODE {
 
 ### • Makefile
 
-&emsp;Makefile merupakan sebuah file yang memiliki fungsi utama menuliskan daftar instruksi yang digunakan untuk menyederhanakan proses build dan compile program `EorzeOS` yang cenderung memiliki banyak command yang perlu dijalankan agar dapat dieksekusi. Makefile akan hanya menjalankan bagian instruksi yang diperlukan dan tidak akan menjalankan instruksi yang memiliki keluaran yang sudah ada dan tidak berubah dari proses build sebelumnya. Adapun tampilan file makefile yang digunakan pada program `EorzeOS` ini adalah sebagai berikut:
+<p align="justify">
+&emsp;&emsp;Makefile merupakan sebuah file yang memiliki fungsi utama menuliskan daftar instruksi yang digunakan untuk menyederhanakan proses build dan compile program <code>EorzeOS</code> yang cenderung memiliki banyak command yang perlu dijalankan agar dapat dieksekusi. Makefile akan hanya menjalankan bagian instruksi yang diperlukan dan tidak akan menjalankan instruksi yang memiliki keluaran yang sudah ada dan tidak berubah dari proses build sebelumnya.  
+</p>
+
+Adapun tampilan file makefile yang digunakan pada program `EorzeOS` ini adalah sebagai berikut:
 
 ```make
 ASM		= nasm
@@ -524,7 +640,7 @@ build: prepare bootloader stdlib shell kernel link
 
 Di mana penjelasan setiap bagiannya:
 
-#### • Variabel Global
+#### • Global Variables
 
 ```make
 ASM		= nasm
@@ -616,7 +732,7 @@ EMULATOR_SRC	= bochsrc.txt
 ```
 18. Variabel `EMULATOR_SRC` menyimpan data terkait konfigurasi dari program emulator yang pada kasus ini adalah `bochsrc.txt` dan digunakan agar emulator `bochs` dapat berjalan. File `bochsrc.txt` berisi berbagai pengaturan seperti lokasi file floppy image, jumlah RAM virtual, dan sebagainya.
 
-#### • Target dan Rule
+#### • Target and Rule
 
 ```make
 prepare:
