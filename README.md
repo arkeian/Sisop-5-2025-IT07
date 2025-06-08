@@ -249,7 +249,6 @@ void scroll() {
 }
 
 void putc(unsigned char c) {
-  unsigned char *ptr;
   unsigned int offset;
 
   if (c == 0) {
@@ -467,7 +466,7 @@ enum KEYCODE {
 ```
 19. Mendefinisikan enumerasi nama-nama simbolik untuk beberapa `KEYCODE` atau karakter kontrol di mana di antaranya terdiri atas:
 	- `KEY_NEWLINE`: yang merepresentasikan karakter `NEWLINE` di mana dalam penerapannya karakter kontrol tersebut digunakan untuk mengindikasikan pemindahan posisi `_yPos` satu baris ke bawah.
-	- `KEY_RETURN`: yang merepresentasikan tombol `ENTER` di mana dalam penerapannya karakter kontrol tersebut digunakan untuk mengindikasikan akhir dari suatu proses input pada `BUFFER` menggunakan `readString()` dan mengembalikan posisi `_xPos` kembali ke awal sesuai dengan variabel `_xStart`.
+	- `KEY_RETURN`: yang merepresentasikan tombol `ENTER` di mana dalam penerapannya karakter kontrol tersebut digunakan untuk mengindikasikan akhir dari suatu proses input pada `BUFFER` menggunakan `readString()` dan mengembalikan posisi `_xPos` kembali ke awal sesuai dengan value yang ditentukan variabel `_xStart`.
 	- `KEY_TAB`: yang merepresentasikan tombol `TAB` atau tabulasi horizontal di mana dalam penerapannya karakter tersebut digunakan untuk mengindikasikan penambahan spasi sebanyak `TAB_SIZE` secara horizontal mulai dari di mana kursor berada saat itu.
 	- `KEY_BACKSPACE`: yang merepresentasikan tombol `BACKSPACE` di mana dalam penerapannya karakter tersebut digunakan untuk mengindikasikan penghapusan karakter sebelum di mana kursor berada saat itu dan memundurkan posisi kursor tersebut sebanyak satu karakter.
 
@@ -569,14 +568,55 @@ void putc(unsigned char c) {
 	- `unsigned char c`: Suatu karakter ASCII yang akan ditampilkan pada layar.
 
 ```c
-unsigned char *ptr;
-```
-34. Mendeklarasikan variabel pointer dengan tipe data `unsigned char` di mana dalam penerapannya digunakan ...
-
-```c
 unsigned int offset;
 ```
-35. Mendeklarasikan variabel `offset` dengan tipe data `unsigned int` di mana dalam penerapannya digunakan ...
+34. Mendeklarasikan variabel `offset` dengan tipe data `unsigned int` di mana dalam penerapannya digunakan sebagai acuan letak kursor terhadap layar yang merupakan posisi di mana nantinya akan diletakkan karakter ASCII tersebut.
+
+```c
+if (c == 0) {
+	return;
+}  
+```
+35. Apabila suatu karakter ASCII yang hendak diletakkan pada layar merupakan karakter dengan nilai ASCII `0` yang merujuk pada karakter `\0`, maka function `putc()` tidak akan meletakkan apapun pada layar dan proses function `putc()` tidak akan dilanjutkan dan akan kembali ke tempat di mana function `putc()` dipanggil.
+
+```c
+else if (c == KEY_NEWLINE) {
+	_xPos = _xStart;
+	_yPos++;
+	return;
+}
+```
+36. Apabila suatu karakter ASCII yang hendak diletakkan pada layar merupakan karakter `NEWLINE` atau `\n`, maka function `putc()` hanya akan memperbarui kooridinat posisi x atau kolom dan y atau baris dengan ketentuan posisi kolom kembali ke awal sesuai dengan value yang ditentukan variabel `_xStart` dan posisi baris akan bergeser sebanyak satu baris ke bawah. Setelah itu, proses function `putc()` tidak akan dilanjutkan dan akan kembali ke tempat di mana function `putc()` dipanggil.
+
+```c
+if (_xPos >= MAX_COLUMNS) {
+	_xPos = _xStart;
+	_yPos++;
+}  
+```
+37. Apabila setelah suatu karakter ASCII diletakkan pada layar, koordinat posisi x atau kolom melebihi batas maksimum ukuran layar yang didefinisikan oleh makro `MAX_COLUMNS`, maka penempatan karakter ASCII selanjutnya akan bergeser ke bawah sebanyak satu baris dan posisi kolom akan kembali ke awal.
+
+```c
+if (_yPos >= MAX_ROWS) {
+	scroll();
+}  
+```
+38. Apabila setelah suatu karakter ASCII diletakkan pada layar, koordinat posisi y atau baris melebihi batas maksimum ukuran layar yang didefinisikan oleh makro `MAX_ROWS`, maka function `scroll()` akan dipanggil dan proses scrolling BIOS terhadap layar akan dijalankan.
+
+```c
+offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
+```
+39. Memasukkan value pada variabel offset yang di mana dalam penerapannya digunakan sebagai acuan letak kursor terhadap layar yang merupakan posisi di mana nantinya akan diletakkan karakter ASCII tersebut di mana proses perhitungan dilakukan dengan penjumlahan alamat offset awal video memori dengan alamat dari koordinat posisi kursor saat function `putc()` dijalankan.
+
+```c
+putInMemory(SEGMENT, offset, c);
+```
+40. Meletakkan karakter ASCII pada layar di mana dalam penerapannya, karakter ASCII tersebut akan diletakkan sesuai dengan alamat segmen video memori yang didefinisikan makro `SEGMENT` dan value offset pada layar sesuai dengan perhitungan yang telah dilakukan sebelumnya.
+
+```c
+putInMemory(SEGMENT, offset + 1, _color);
+```
+41. Meletakkan atribut warna dari karakter ASCII pada layar di mana dalam penerapannya, karakter ASCII tersebut akan diletakkan sesuai dengan alamat segmen video memori yang didefinisikan makro `SEGMENT` dan value offset satu karakter setelah alamat offset yang perhitungannya telah dilakukan sebelumnya, sehingga secara keseluruhan, untuk menampilkan satu karakter beserta atributnya, maka diperlukan ukuran memori sebesar `2` byte.
 
 #### • Print String
 #### • Read String
