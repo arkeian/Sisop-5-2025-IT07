@@ -386,7 +386,7 @@ Di mana langkah implementasinya:
 ```c
 #define INT_KBD     0x16
 ```
-5. Mendefinisikan makro `INT_KBD` yang merepresentasikan layanan interupsi keyboard untuk BIOS dengan integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk melakukan proses interaksi dengan keyboard seperti membaca keypress menggunakan function `interrupt()`.
+5. Mendefinisikan makro `INT_KBD` yang merepresentasikan layanan interupsi keyboard untuk BIOS dengan integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk melakukan proses interaksi dengan keyboard seperti membaca input menggunakan function `interrupt()`.
 
 ```c
 #define TELETYPE    0X0E
@@ -398,7 +398,7 @@ Di mana langkah implementasinya:
 ```c
 #define KEYBOARD    0X00
 ```
-7. Mendefinisikan makro `KEYBOARD` dengan value `0x00` yang merepresentasikan suatu subfungsi dari integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk menunggu keypress dari keyboard dan akan membaca satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AL`.
+7. Mendefinisikan makro `KEYBOARD` dengan value `0x00` yang merepresentasikan suatu subfungsi dari integer `0x16` atau `16h` di mana dalam penerapannya digunakan untuk menunggu input dari keyboard dan akan membaca satu karakter ASCII menggunakan function `interrupt()` dan melalui register `AL`.
 
 ```c
 #define MASK        0x00FF
@@ -439,7 +439,7 @@ Di mana langkah implementasinya:
 ```c
 #define BUFFER      128
 ```
-15. Mendefinisikan makro `BUFFER` yang merepresentasikan suatu konstanta di mana dalam penerapannya digunakan untuk mendefinisikan batas maksimum area memori yang digunakan untuk penampungan sementara karakter input yang dimasukkan melalui function `readString()` yang di mana pada kasus program `EorzeOS` besarnya adalah `127` karakter ditambah dengan satu `\0`.
+15. Mendefinisikan makro `BUFFER` yang merepresentasikan suatu konstanta di mana dalam penerapannya digunakan untuk mendefinisikan batas maksimum area memori yang digunakan untuk penampungan sementara karakter input yang dimasukkan oleh user melalui function `readString()` yang di mana pada kasus program `EorzeOS` besarnya adalah `127` karakter ditambah dengan satu `\0`.
 
 ```C
 static unsigned int _xPos = 0, _yPos = 0;
@@ -577,7 +577,7 @@ if (c == 0) {
 	return;
 }  
 ```
-35. Apabila suatu karakter ASCII yang hendak diletakkan pada layar merupakan karakter dengan nilai ASCII `0` yang merujuk pada karakter `\0`, maka function `putc()` tidak akan meletakkan apapun pada layar dan proses function `putc()` tidak akan dilanjutkan dan akan kembali ke tempat di mana function `putc()` dipanggil.
+35. Apabila suatu karakter ASCII yang hendak diletakkan pada layar merupakan karakter dengan nilai ASCII `0` yang merujuk pada karakter `\0`, maka function `putc()` tidak akan meletakkan apapun pada layar. Selain itu, proses function `putc()` tidak akan dilanjutkan dan akan kembali ke tempat di mana function `putc()` dipanggil.
 
 ```c
 else if (c == KEY_NEWLINE) {
@@ -618,9 +618,210 @@ putInMemory(SEGMENT, offset + 1, _color);
 ```
 41. Meletakkan atribut warna dari karakter ASCII pada layar di mana dalam penerapannya, karakter ASCII tersebut akan diletakkan sesuai dengan alamat segmen video memori yang didefinisikan makro `SEGMENT` dan value offset satu karakter setelah alamat offset yang perhitungannya telah dilakukan sebelumnya, sehingga secara keseluruhan, untuk menampilkan satu karakter beserta atributnya, maka diperlukan ukuran memori sebesar `2` byte.
 
+```c
+_xPos++;
+```
+42. Setelah karakter ASCII diletakkan pada layar, maka koordinat posisi x atau kolom bergeser satu karakter ke kanan. 
+
 #### • Print String
+
+```c
+void printString(char *str) {
+	...
+}
+```
+43. Mendeklarasikan function `printString()` dengan ketentuan parameter:
+	- `char *str`: Suatu pointer dengan tipe data char yang menunjuk pada alamat suatu array string karakter ASCII yang akan ditampilkan pada layar.
+
+```c
+if (str == 0) {
+	return;
+}  
+```
+44. Apabila array string yang hendak diletakkan pada layar hanya terdiri dari satu karakter dengan nilai ASCII `0` yang merujuk pada karakter `\0`, maka function `printString()` tidak akan memanggil function `putc()`. Selain itu, proses function `printString()` tidak akan dilanjutkan dan akan kembali ke tempat di mana function `printString()` dipanggil.
+
+```c
+while(*str) {
+	putc(*str);
+	str++;
+}  
+```
+45. Selama karakter ASCII yang terdapat pada array string bukan merupakan karakter `\0`, maka function `printString()` akan memanggil function `putc()` dan meletakkan karakter ASCII tersebut pada layar. Proses ini akan berlanjut terus hingga semua karakter ASCII pada array string selain karakter `\0` telah diletakkan pada layar menggunakan function `putc()`.
+
 #### • Read String
+
+```c
+void readString(char *buf) {
+	...
+}
+```
+46. Mendeklarasikan function `readString()` dengan ketentuan parameter:
+	- `char *buf`: Suatu pointer dengan tipe data char yang menunjuk pada array buffer atau alamat suatu area memori yang digunakan untuk penampungan sementara karakter input yang dimasukkan oleh user.
+
+```c
+unsigned char c;
+```
+47. Mendeklarasikan variabel `c` dengan tipe data `unsigned char` di mana dalam penerapannya digunakan untuk menyimpan suatu karakter ASCII yang akan ditampilkan pada layar.
+
+```c
+int bufPos = 0;
+```
+48. Mendeklarasikan variabel `bufPos` dengan tipe data `int` di mana dalam penerapannya digunakan untuk menyimpan indeks dari array buffer atau alamat suatu area memori yang digunakan untuk penampungan sementara karakter input yang dimasukkan oleh user.
+
+```c
+unsigned int ax;
+```
+49. Mendeklarasikan variabel `AX` di mana dalam penerapannya digunakan untuk menyimpan data terkait register 16-bit yang digunakan pada function `readString()` untuk melakukan proses interaksi dengan keyboard seperti membaca input menggunakan function `interrupt()`.
+
+```c
+unsigned int offset;
+```
+50. Mendeklarasikan variabel `offset` dengan tipe data `unsigned int` di mana dalam penerapannya digunakan sebagai acuan letak kursor terhadap layar yang merupakan posisi di mana nantinya akan diletakkan karakter ASCII tersebut.
+
+```c
+int i;
+```
+51. Mendeklarasikan variabel `i` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai indeks proses meletakkan karakter spasi pada layar saat user memasukkan input dengan menekan tombol `TAB` yang pada program `EorzeOS` direpresentasikan dengan variabel `KEY_TAB`.
+
+```c
+while (1) {
+	...
+} 
+```
+52. Pada kasus program `EorzeOS`, proses membaca input dari user akan berjalan dengan tanpa henti kecuali jika user menekan tombol `ENTER` yang pada program `EorzeOS` direpresentasikan dengan variabel `KEY_RETURN`.
+
+```c
+ax = interrupt(INT_KBD, KEYBOARD, 0, 0, 0);
+```
+53. 
+
+```c
+c = (unsigned char)(ax & MASK);
+```
+54. Mengubah tipe data input yang dimasukkan oleh user menjadi tipe data dalam bentuk `unsigned char` dan ...
+
+```c
+if (c == KEY_RETURN) {
+	buf[bufPos] = '\0';
+	putc(KEY_NEWLINE);
+	break;
+}
+```
+55. Apabila karakter ASCII yang terbaca dari input user merupakan karakter `\n` yang pada program `EorzeOS` direpresentasikan dengan variabel `KEY_RETURN` maka ... dan proses membaca input dari user akan dihentikan.
+
+```c
+else if (c == KEY_TAB) {
+	for (i = 0; i < TAB_SIZE; i++) {
+		buf[bufPos] = ' ';
+		bufPos++;
+		putc(' ');
+	}
+}  
+```
+56. Selain itu, apabila karakter ASCII yang terbaca dari input user merupakan karakter `0x09` yang pada program `EorzeOS` direpresentasikan dengan variabel `KEY_TAB` maka ...
+
+```c
+else if (c == KEY_BACKSPACE) {
+	...      
+}  
+```
+57. Selain itu, apabila karakter ASCII yang terbaca dari input user merupakan karakter `0x08` yang pada program `EorzeOS` direpresentasikan dengan variabel `KEY_BACKSPACE` maka akan diberlakukan penghapusan karakter ASCII yang ada pada layar di mana pada penerapannya terdapat beberapa kasus tertentu yang perlu menggunakan penanganan khusus.
+
+```c
+if (bufPos > 0) {
+	bufPos--;
+	...
+}  
+```
+58. Suatu karakter ASCII yang ditampilkan pada layar hanya akan dihapus jika benar-benar ada dan terdapat di dalam array buffer. Apabila terindikasi bahwa terdapat karakter pada layar, maka indeks array buffer akan dikurangi satu yang menandakan bahwa karakter ASCII yang terakhir ditampilkan pada layar akan dihapus.
+
+```c
+if (_xPos > _xStart) {
+	_xPos--;
+}  
+```
+59. 
+
+```c
+else if (_yPos > _yStart) {
+	_yPos--;
+	_xPos = MAX_COLUMNS - 1;
+}  
+```
+60.
+
+```c
+offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
+```
+61. Memasukkan value pada variabel offset yang di mana dalam penerapannya digunakan sebagai acuan letak kursor terhadap layar yang merupakan posisi di mana nantinya akan diletakkan karakter ASCII tersebut di mana proses perhitungan dilakukan dengan penjumlahan alamat offset awal video memori dengan alamat dari koordinat posisi kursor saat function `readString()` dijalankan.
+```c
+putInMemory(SEGMENT, offset, ' ');
+```
+62. Meletakkan karakter ASCII pada layar di mana pada kasus proses penghapusan karakter, karakter yang diletakkan adalah karakter spasi dan dalam penerapannya, karakter spasi tersebut akan diletakkan sesuai dengan alamat segmen video memori yang didefinisikan makro `SEGMENT` dan value offset pada layar sesuai dengan perhitungan yang telah dilakukan sebelumnya.
+
+```c
+putInMemory(SEGMENT, offset + 1, _color);
+```
+63. Meletakkan atribut warna dari karakter ASCII pada layar di mana pada kasus proses penghapusan karakter, karakter yang diletakkan adalah karakter spasi dan di mana dalam penerapannya, karakter spasi tersebut akan diletakkan sesuai dengan alamat segmen video memori yang didefinisikan makro `SEGMENT` dan value offset satu karakter setelah alamat offset yang perhitungannya telah dilakukan sebelumnya, sehingga secara keseluruhan, untuk menampilkan satu karakter beserta atributnya, maka diperlukan ukuran memori sebesar `2` byte.
+
+```c
+else {
+	if (c >= VALID_ASCII && bufPos < BUFFER - 1) {
+		buf[bufPos] = c;
+		bufPos++;
+		putc(c);
+	}  
+}  
+```
+64.
+
 #### • Clear Screen
+
+```c
+void clearScreen() {
+	...
+}
+```
+65. Mendeklarasikan function `clearScreen()` dengan tipe `void` dan tanpa menggunakan variabel parameter.
+
+```c
+unsigned int offset;
+```
+66. Mendeklarasikan variabel `offset` dengan tipe data `unsigned int` di mana dalam penerapannya digunakan sebagai acuan letak kursor terhadap layar yang merupakan posisi di mana nantinya akan diletakkan karakter ASCII tersebut.
+
+```c
+int i, j;
+```
+67.
+
+```c
+for (i = 0; i < MAX_ROWS; i++) {
+	for (j = 0; j < MAX_COLUMNS; j++) {
+		...
+	}  
+}  
+```
+68. 
+
+```c
+offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
+```
+<!-- 🤨 -->
+69. Memasukkan value pada variabel offset yang di mana dalam penerapannya digunakan sebagai acuan letak kursor terhadap layar yang merupakan posisi di mana nantinya akan diletakkan karakter ASCII tersebut di mana proses perhitungan dilakukan dengan penjumlahan alamat offset awal video memori dengan alamat dari koordinat posisi kursor saat function `readString()` dijalankan.
+```c
+putInMemory(SEGMENT, offset, ' ');
+```
+70. Meletakkan karakter ASCII pada layar di mana pada kasus proses penghapusan karakter, karakter yang diletakkan adalah karakter spasi dan dalam penerapannya, karakter spasi tersebut akan diletakkan sesuai dengan alamat segmen video memori yang didefinisikan makro `SEGMENT` dan value offset pada layar sesuai dengan perhitungan yang telah dilakukan sebelumnya.
+
+```c
+putInMemory(SEGMENT, offset + 1, _color);
+```
+71. Meletakkan atribut warna dari karakter ASCII pada layar di mana pada kasus proses penghapusan karakter, karakter yang diletakkan adalah karakter spasi dan di mana dalam penerapannya, karakter spasi tersebut akan diletakkan sesuai dengan alamat segmen video memori yang didefinisikan makro `SEGMENT` dan value offset satu karakter setelah alamat offset yang perhitungannya telah dilakukan sebelumnya, sehingga secara keseluruhan, untuk menampilkan satu karakter beserta atributnya, maka diperlukan ukuran memori sebesar `2` byte.
+
+```c
+repositionXY(0, 0);
+```
+72. Memanggil function `repositionXY()` untuk mengubah value koordinat posisi x atau kolom menjadi `0` atau kembali ke awal dan koordinat posisi y atau baris menjadi `0` atau kembali ke awal.
 
 ### • Stdlib
 
