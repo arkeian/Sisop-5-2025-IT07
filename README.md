@@ -414,7 +414,7 @@ Di mana langkah implementasinya:
 ```c
 #define SCROLL      0x06
 ```
-10. Mendefinisikan makro `SCROLL` dengan value `0x06` yang merepresentasikan suatu fungsi utama dari integer `0x10` atau `10h` di mana pada kasus program `EorzeOS` digunakan pada register `AH` yang merupakan high byte dari register `AX` yang digunakan untuk memungkinkan dilakukannya proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
+10. Mendefinisikan makro `SCROLL` dengan value `0x06` yang merepresentasikan suatu fungsi utama BIOS dari integer `0x10` atau `10h` di mana pada kasus program `EorzeOS` digunakan pada register `AH` yang merupakan high byte dari register `AX` yang digunakan untuk memungkinkan dilakukannya proses scrolling BIOS menggunakan function `scroll()` yang pada dasarnya dapat dilakukan dengan bantuan interupsi video untuk BIOS menggunakan function `interrupt()`.
 
 ```c
 #define SCROLL_ONE  0x01
@@ -530,7 +530,7 @@ unsigned int ax, bx, cx, dx;
 ```c
 ax = (SCROLL << 8) | SCROLL_ONE;
 ```
-27. Memasukkan value pada register 16-bit `AX` yang merupakan gabungan antara register 8-bit high byte `AH` di mana dalam penerapannya digunakan sebagai fungsi utama yang menyimpan value `SCROLL` atau `0x06` yang memungkinkan dilakukannya proses scrolling BIOS dan register 8-bit low byte `AL` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value `SCROLL_ONE` atau `0x01` yang memuat banyaknya baris yang akan digeser ke atas saat melakukan proses scrolling BIOS.
+27. Memasukkan value pada register 16-bit `AX` yang merupakan gabungan antara register 8-bit high byte `AH` di mana dalam penerapannya digunakan sebagai fungsi utama BIOS yang menyimpan value `SCROLL` atau `0x06` yang memungkinkan dilakukannya proses scrolling BIOS dan register 8-bit low byte `AL` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value `SCROLL_ONE` atau `0x01` yang memuat banyaknya baris yang akan digeser ke atas saat melakukan proses scrolling BIOS.
 
 ```c
 bx = (_color << 8) | IGNORE;
@@ -540,17 +540,18 @@ bx = (_color << 8) | IGNORE;
 ```c
 cx = (0 << 8) | 0;
 ```
-29. Memasukkan value pada register 16-bit `CX` yang merupakan gabungan antara register 8-bit high byte `CH` di mana dalam penerapannya digunakan sebagai ... dan register 8-bit low byte `CL` di mana dalam penerapannya digunakan sebagai ...
+29. Memasukkan value pada register 16-bit `CX` yang merupakan gabungan antara register 8-bit high byte `CH` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value batas kiri layar dari proses scrolling BIOS dan register 8-bit low byte `CL` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value batas atas layar dari proses scrolling BIOS.
 
 ```c
 dx = ((MAX_ROWS - 1) << 8) | (MAX_COLUMNS - 1);
 ```
-30. Memasukkan value pada register 16-bit `DX` yang merupakan gabungan antara register 8-bit high byte `DH` di mana dalam penerapannya digunakan sebagai ... dan register 8-bit low byte `DL` di mana dalam penerapannya digunakan sebagai ...
+30. Memasukkan value pada register 16-bit `DX` yang merupakan gabungan antara register 8-bit high byte `DH` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan balue batas kanan layar dari proses scrolling BIOS dan register 8-bit low byte `DL` di mana dalam penerapannya digunakan sebagai parameter yang menyimpan value batas bawah layar dari proses scrolling BIOS.
 
 ```c
 interrupt(INT_VID, ax, bx, cx, dx);
 ```
-31. Memanggil function eksternal `interrupt()` dari program `kernel.asm` di mana dalam penerapannya digunakan ...
+31. Memanggil function eksternal `interrupt()` dari program `kernel.asm` di mana dalam penerapannya digunakan untuk menjalankan proses scrolling BIOS terhadap layar dengan menggunakan layanan interupsi video dengan integer `0x10` atau `10h` dan dengan parameter register 16-bit `AX`, `BX`, `CX`, dan `DX`.
+
 
 ```c
 repositionXY(0, MAX_ROWS - 1);
