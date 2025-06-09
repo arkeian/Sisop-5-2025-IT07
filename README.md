@@ -793,7 +793,7 @@ unsigned int offset;
 ```c
 int i, j;
 ```
-67.
+67. Mendeklarasikan variabel `i` dan `j` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai indeks yang merujuk pada koordinat posisi suatu kolom dan baris pada layar.
 
 ```c
 for (i = 0; i < MAX_ROWS; i++) {
@@ -802,7 +802,7 @@ for (i = 0; i < MAX_ROWS; i++) {
 	}  
 }  
 ```
-68. 
+68. Pada layar, dimulai dengan koordinat posisi dengan nilai `0` atau posisi awal, program akan berjalan menelusuri satu karakter ASCII demi satu karakter ASCII sepanjang layar di mana variabel `i` akan bergerak dari atas ke bawah secara vertikal dan variabel `j` akan bergerak dari kiri ke kanan secara horizontal selama koordinat posisi tidak melebihi ukuran layar yang telah ditentukan di mana pada kasus program `EorzeOS` merupakan nilai value yang didefinisikan oleh makro `MAX_ROWS` dan `MAX_COLUMNS`.
 
 ```c
 offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
