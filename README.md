@@ -671,7 +671,7 @@ int bufPos = 0;
 ```c
 unsigned int ax;
 ```
-49. Mendeklarasikan variabel `AX` di mana dalam penerapannya digunakan untuk menyimpan data terkait register 16-bit yang digunakan pada function `readString()` untuk melakukan proses interaksi dengan keyboard seperti membaca input menggunakan function `interrupt()`.
+49. Mendeklarasikan variabel `AX` di mana dalam penerapannya digunakan untuk menyimpan data terkait register 16-bit yang digunakan pada function `readString()` untuk melakukan proses interaksi dengan keyboard seperti membaca input dari user menggunakan function `interrupt()`.
 
 ```c
 unsigned int offset;
@@ -693,12 +693,13 @@ while (1) {
 ```c
 ax = interrupt(INT_KBD, KEYBOARD, 0, 0, 0);
 ```
-53. 
+53. Memasukkan value yang di mana merupakan value return dari function `interrupt()` setelah melakukan proses interaksi dengan keyboard seperti membaca input dari user dengan menggunakan layanan interupsi keyboard untuk BIOS dengan integer `0x16` atau `16h` ke dalam register 16-bit `AX` yang merupakan gabungan antara register 8-bit high byte `AH` dan register 8-bit low byte `AL`.
 
 ```c
 c = (unsigned char)(ax & MASK);
 ```
-54. Mengubah tipe data input yang dimasukkan oleh user menjadi tipe data dalam bentuk `unsigned char` dan ...
+54. Mengubah tipe data input yang dimasukkan oleh user menjadi tipe data dalam bentuk `unsigned char` di mana dalam penerapannya akan mengambil low byte dari register `AX` yang pada kasus ini merupakan register `AL` yang memuat karakter ASCII dan menghapus high byte dari register `AX` yang pada kasus ini merupakan register `AH`.
+
 
 ```c
 if (c == KEY_RETURN) {
@@ -718,7 +719,7 @@ else if (c == KEY_TAB) {
 	}
 }  
 ```
-56. Selain itu, apabila karakter ASCII yang terbaca dari input user merupakan karakter `0x09` yang pada program `EorzeOS` direpresentasikan dengan variabel `KEY_TAB` maka ...
+56. Selain itu, apabila karakter ASCII yang terbaca dari input user merupakan karakter `0x09` yang pada program `EorzeOS` direpresentasikan dengan variabel `KEY_TAB` maka pada layar akan diletakkan karakter spasi sesuai dengan value yang disimpan variabel indeks `i` yang telah ditentukan sebelumnya.
 
 ```c
 else if (c == KEY_BACKSPACE) {
