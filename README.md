@@ -741,7 +741,7 @@ if (_xPos > _xStart) {
 	_xPos--;
 }  
 ```
-59. 
+59. Selain itu, selama nilai value dari variabel `_xPos` di mana dalam penerapannya digunakan untuk menyimpan data terkait koordinat posisi x atau kolom yang menyimpan value kolom letak karakter ASCII terakhir yang ditampilkan pada layar tidak kurang dari nilai value variabel `_xStart` di mana dalam penerapannya digunakan untuk menyimpan data terkait koordinat posisi x atau kolom awal, maka koordinat posisi x atau kolom yang menyimpan value kolom letak karakter ASCII terakhir yang ditampilkan pada layar akan dikurangi satu yang menandakan bahwa karakter ASCII yang terakhir ditampilkan pada layar akan dihapus.
 
 ```c
 else if (_yPos > _yStart) {
@@ -749,7 +749,7 @@ else if (_yPos > _yStart) {
 	_xPos = MAX_COLUMNS - 1;
 }  
 ```
-60.
+60. Selain itu, selama nilai value dari variabel `_yPos` di mana dalam penerapannya digunakan untuk menyimpan data terkait koordinat posisi y atau baris yang menyimpan value baris letak karakter ASCII terakhir yang ditampilkan pada layar tidak kurang dari nilai value variabel `_yStart` di mana dalam penerapannya digunakan untuk menyimpan data terkait koordinat posisi y atau baris awal, maka koordinat posisi y atau baris yang menyimpan value baris letak karakter ASCII terakhir yang ditampilkan pada layar akan dikurangi satu dan variabel `_xPos` di mana dalam penerapannya digunakan untuk menyimpan data terkait koordinat posisi x atau kolom yang menyimpan value kolom letak karakter ASCII terakhir yang ditampilkan pada layar akan diubah menjadi koordinat posisi x atau kolom terakhir dari satu baris di atas di mana variabel `_yPos` merujuk sebelum dilakukan pengurangan.
 
 ```c
 offset = ADDRESS + (_yPos * MAX_COLUMNS + _xPos) * 2;
@@ -774,7 +774,7 @@ else {
 	}  
 }  
 ```
-64.
+64. Selain itu, apabila karakter ASCII yang terbaca dari input user merupakan suatu karakter yang berada di dalam batasan yang didefinisikan makro `VALID_ASCII`, maka pada layar akan diletakkan karakter ASCII sesuai dengan nilai value yang disimpan pada variabel `c`. Setelah itu, variabel `bufPos` di mana dalam penerapannya digunakan untuk menyimpan value indeks dari array buffer atau alamat suatu area memori yang digunakan untuk penampungan sementara karakter input yang dimasukkan oleh user akan ditambahkan satu.
 
 #### • Clear Screen
 
