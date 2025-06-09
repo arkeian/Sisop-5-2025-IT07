@@ -1018,7 +1018,44 @@ void itoa(int num, char *str) {
 Di mana langkah implementasinya:
 
 #### • Preprocessors
+
+```c
+#include "std_lib.h"
+#include "std_type.h"
+```
+1. Menyertakan file-file header yang didefinisikan pada direktori `/include` di mana file header tersebut menyediakan elemen seperti deklarasi fungsi, makro, beserta definisi konstanta yang diperlukan dalam implementasi program `std_lib.c`.
+
 #### • Integer Division
+
+```c
+int div(int a, int b) {
+	...
+}
+```
+2. Mendeklarasikan function `div()` dengan ketentuan parameter:
+	- `int a`: Suatu integer yang merupakan angka pembilang dari proses pembagian dua bilangan.
+ 	- `int b`: Suatu integer yang merupakan angka penyebut dari proses pembagian dua bilangan.
+
+```c
+int quotient = 0;
+```
+3. Mendeklarasikan variabel `quotient` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai variabel yang menyimpan data hasil bagi dari proses pembagian antara nilai value variabel `a` dengan nilai value variabel `b`.
+
+```c
+int negative = false;
+```
+4. Mendeklarasikan variabel `negative` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai variabel boolean untuk menyimpan data apakah suatu pembagian dapat menghasilkan bilangan negatif atau tidak.
+
+
+```c
+int tmpb;
+```
+5. Mendeklarasikan variabel `tmpb` dengan tipe data `int` di mana dalam penerapannya digunakan untuk variabel sementara yang menyimpan nilai value yang disimpan oleh variabel `b` yang nantinya akan digunakan untuk operasi pembagian menggunakan metode penggeseran biner.
+
+```c
+```
+5. 
+
 #### • Integer Modulus
 #### • Compare Strings
 #### • Copy Strings
