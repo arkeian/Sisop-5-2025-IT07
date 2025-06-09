@@ -1446,27 +1446,27 @@ build: prepare bootloader stdlib shell kernel link
 	<img src="https://github.com/user-attachments/assets/c7c7e1c3-ad57-4980-922f-324e3f34be4a" alt="Kangen melempar sebuah error ke stderr">  
 </p>
 
-> Screenshot potret munculnya dua hieroglif pada layar emulator Bochs.
+> (1) Screenshot potret munculnya dua hieroglif pada layar emulator Bochs.
 
 <p align="justify">
 &emsp;&emsp;Permasalahan yang ditampilkan pada potret merupakan suatu kasus di mana pada saat melakukan uji coba function <code>putc()</code> pada program <code>kernel.c</code> dengan mencoba untuk menampilkan satu karakter ASCII '<code>X</code>', pada emulator Bochs, karakter ASCII tersebut tidak muncul melainkan terdapat dua hieroglif yang ditampilkan pada layar. Hal ini dikarenakan pada program ANSI C (C89) yang menggunakan sistem 16-bit dengan compiler <code>bcc</code>, urutan pendeklarasian fungsi pada program mempengaruhi kinerja program tersebut. Di mana pada kasus permasalahan di atas, disebabkan oleh penempatan function <code>main()</code> pada bagian terakhir dari program <code>kernel.c</code> dan bukan merupakan function yang dideklarasikan paling awal.
 </p>
 
 <p align="center">
-	<img src="https://github.com/user-attachments/assets/3c6066dc-0ee6-4c6b-95d0-2d7b14e4ca3d" alt="Brain Damage 3?">  
+	<img src="https://github.com/user-attachments/assets/3c6066dc-0ee6-4c6b-95d0-2d7b14e4ca3d" alt="Brain Damage 3?" width="640" height="360">  
 </p>
 
-> Screenshot potret error saat proses compiling program `EorzeOS` di mana compiler tidak dapat menemukan file header `std_lib.h`.
+> (2) Screenshot potret error saat proses compiling program `EorzeOS` di mana compiler tidak dapat menemukan file header `std_lib.h`.
 
 <p align="justify">
 &emsp;&emsp;Permasalahan yang ditampilkan pada potret merupakan suatu kasus di mana pada saat mencoba untuk melakukan proses compile program <code>shell.c</code> dengan mengikutsertakan file header <code>std_lib.h</code> menyebabkan error di mana compiler tidak dapat menemukan file header <code>std_lib.h</code> yang diikutsertakan. Hal ini dikarenakan pada program ANSI C (C89) yang menggunakan sistem 16-bit dengan compiler <code>bcc</code>, urutan pendeklarasian file header pada program mempengaruhi kinerja program tersebut. Di mana pada kasus permasalahan di atas, disebabkan oleh file header <code>kernel.h</code> dideklarasikan terlebih dahulu dibandingkan dengan file header <code>std_lib.h</code>. Hal ini menyebabkan compiler tidak dapat membaca file header <code>std_lib.h</code> tersebut walaupun sebelumnya compiler dapat membaca file header <code>kernel.h</code> yang terletak di direktori yang sama.
 </p>
 
 <p align="center">
-	<img src="https://github.com/user-attachments/assets/cd19ef91-11a1-46a7-8c75-7cdda6289fd5" alt="user_cant_think_of_any_hidden_text_ideas_no_more()">  
+	<img src="https://github.com/user-attachments/assets/cd19ef91-11a1-46a7-8c75-7cdda6289fd5" alt="user_cant_think_of_any_hidden_text_ideas_no_more()" width="640" height="360">  
 </p>
 
-> Screenshot potret proses compiling program `EorzeOS` berhasil jika file header `std_lib.h` didefinisikan terlebih dahulu dibandingkan dengan `kernel.h`.
+> (3) Screenshot potret proses compiling program `EorzeOS` berhasil jika file header `std_lib.h` didefinisikan terlebih dahulu dibandingkan dengan `kernel.h`.
 
 ### • Revisi
 1. Implementasi Fitur `Grand Company` (Personalisasi Terminal)  
