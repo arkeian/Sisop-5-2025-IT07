@@ -836,8 +836,6 @@ Adapun tampilan `std_lib.c` secara keseluruhan adalah sebagai berikut:
 #include "std_lib.h"
 #include "std_type.h"
 
-#define INT_MAX 32767
-
 int div(int a, int b) {
   int quotient = 0;
   int negative = false;
@@ -1044,20 +1042,176 @@ int quotient = 0;
 ```c
 int negative = false;
 ```
-4. Mendeklarasikan variabel `negative` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai variabel boolean untuk menyimpan data apakah suatu pembagian dapat menghasilkan bilangan negatif atau tidak.
-
+4. Mendeklarasikan variabel `negative` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai variabel boolean untuk menyimpan data apakah suatu operasi pembagian dapat menghasilkan bilangan negatif atau tidak.
 
 ```c
 int tmpb;
 ```
-5. Mendeklarasikan variabel `tmpb` dengan tipe data `int` di mana dalam penerapannya digunakan untuk variabel sementara yang menyimpan nilai value yang disimpan oleh variabel `b` yang nantinya akan digunakan untuk operasi pembagian menggunakan metode penggeseran biner.
+5. Mendeklarasikan variabel `tmpb` dengan tipe data `int` di mana dalam penerapannya digunakan untuk variabel sementara yang menyimpan nilai value yang disimpan oleh variabel `b` yang nantinya akan digunakan untuk operasi pembagian nilai value variabel `a` dengan nilai value variabel `b` menggunakan metode penggeseran biner.
 
 ```c
+int multiple;
 ```
-5. 
+6. Mendeklarasikan variabel `multiple` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai variabel yang ntuk menyimpan data kelipatan dari nilai value variabel `b` yang didapatkan setelah melakukan suatu proses penggeseran biner dalam operasi pembagian nilai value variabel `a` dengan nilai value variabel `b`.
+
+```c
+if (b == 0) {
+	return INT_MAX;
+}
+```
+7. Memastikan bahwa nilai value dari variabel `b` yang dimasukkan ke dalam function `div()` merupakan suatu bilangan dengan nilai `0`. Apabila nilai value variabel `b` adalah `0` maka operasi pembagian nilai value variabel `a` dengan nilai value variabel `b` tidak dilanjutkan dan function `div()` akan mengembalikan nilai value `INT_MAX` di mana pada kasus program `EorzeOS` yang merupakan program 16-bit, didefinisikan dengan nilai `32767`.
+
+```c
+if (a < 0) {
+	a *= -1;
+	negative = !negative;
+}
+```
+8. Memastikan bahwa nilai value dari variabel `a` yang dimasukkan ke dalam function `div()` merupakan suatu bilangan dengan nilai negatif atau `< 0`. Apabila nilai value variabel `a` adalah negatif maka nilai value variabel `a` akan diubah menjadi positif dan nilai value dari variabel `negative` akan diubah menjadi nilai lawannya.
+
+```c
+if (b < 0) {
+	b *= -1;
+	negative = !negative;
+}
+```
+9. Memastikan bahwa nilai value dari variabel `b` yang dimasukkan ke dalam function `div()` merupakan suatu bilangan dengan nilai negatif atau `< 0`. Apabila nilai value variabel `b` adalah negatif maka nilai value variabel `b` akan diubah menjadi positif dan nilai value dari variabel `negative` akan diubah menjadi nilai lawannya.
+
+```c
+while (a >= b) {
+	...
+}
+```
+10. Proses operasi pembagian nilai value variabel `a` dengan nilai value variabel `b` menggunakan metode penggeseran biner akan tetap berjalan selama nilai value dari variabel `a` tetap lebih besar dari nilai value dari variabel `b`.
+
+```c
+tmpb = b;
+```
+11. Memasukkan nilai value yang disimpan pada variabel `b` ke dalam variabel `tmpb` di mana dalam penerapannya akan digunakan untuk operasi pembagian nilai value variabel `a` dengan nilai value variabel `b` menggunakan metode penggeseran biner.
+
+```c
+multiple = 1;
+```
+12. Memasukkan nilai value ke dalam variabel `multiple` dengan nilai default adalah `1` yang menunjukkan bahwa variabel `multiple` menyimpan nilai kelipatan ke-`1` dari nilai value yang disimpan pada variabel `tmpb`.
+
+```c
+while ((tmpb << 1) > 0 && (tmpb << 1) <= a) {
+	tmpb <<= 1;
+	multiple <<= 1;
+}
+```
+13.
+
+```c
+a -= tmpb;
+```
+14.
+
+```c
+quotient += multiple;
+```
+15. 
+
+```c
+if (negative) {
+	return -quotient;
+}
+```
+16. 
+
+```c
+return quotient;
+```
+17. 
 
 #### • Integer Modulus
+
+```c
+int mod(int a, int b) {
+	...
+}
+```
+18. Mendeklarasikan function `mod()` dengan ketentuan parameter:
+	- `int a`: Suatu integer yang merupakan angka operand kiri dari proses modulus dua bilangan.
+ 	- `int b`: Suatu integer yang merupakan angka operand kanan dari proses modulus dua bilangan.
+
+```c
+int negative = false;
+```
+19. Mendeklarasikan variabel `negative` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai variabel boolean untuk menyimpan data apakah suatu operasi modulus dapat menghasilkan bilangan negatif atau tidak.
+
+```c
+int tmpb;
+```
+20. Mendeklarasikan variabel `tmpb` dengan tipe data `int` di mana dalam penerapannya digunakan untuk variabel sementara yang menyimpan nilai value yang disimpan oleh variabel `b` yang nantinya akan digunakan untuk operasi modulus nilai value variabel `a` dengan nilai value variabel `b` menggunakan metode penggeseran biner.
+
+```c
+if (b == 0) {
+	return 0;
+}
+```
+21. Memastikan bahwa nilai value dari variabel `b` yang dimasukkan ke dalam function `mod()` merupakan suatu bilangan dengan nilai `0`. Apabila nilai value variabel `b` adalah `0` maka operasi modulus nilai value variabel `a` dengan nilai value variabel `b` tidak dilanjutkan dan function `mod()` akan mengembalikan nilai value `0`.
+
+```c
+if (a < 0) {
+	a *= -1;
+	negative = true;
+}
+```
+22. Memastikan bahwa nilai value dari variabel `a` yang dimasukkan ke dalam function `mod()` merupakan suatu bilangan dengan nilai negatif atau `< 0`. Apabila nilai value variabel `a` adalah negatif maka nilai value variabel `a` akan diubah menjadi positif dan nilai value dari variabel `negative` akan diubah menjadi nilai `true`.
+
+```c
+if (b < 0) {
+	b *=-1;
+}
+```
+23. Memastikan bahwa nilai value dari variabel `b` yang dimasukkan ke dalam function `mod()` merupakan suatu bilangan dengan nilai negatif atau `< 0`. Apabila nilai value variabel `b` adalah negatif maka nilai value variabel `b` akan diubah menjadi positif.
+
+```c
+while (a >= b) {
+	...
+}
+```
+24. Proses operasi modulus nilai value variabel `a` dengan nilai value variabel `b` menggunakan metode penggeseran biner akan tetap berjalan selama nilai value dari variabel `a` tetap lebih besar dari nilai value dari variabel `b`.
+
+```c
+tmpb = b;
+```
+25. Memasukkan nilai value yang disimpan pada variabel `b` ke dalam variabel `tmpb` di mana dalam penerapannya akan digunakan untuk operasi modulus nilai value variabel `a` dengan nilai value variabel `b` menggunakan metode penggeseran biner.
+
+```c
+while ((tmpb << 1) > 0 && (tmpb << 1) <= a) {
+	tmpb <<= 1;
+}
+```
+26. 
+
+```c
+a -= tmpb;
+```
+27.
+
+```c
+if (negative) {
+	return -a;
+}
+```
+28. 
+
+```c
+return a;
+```
+29. Mengembalikan nilai value dari variabel `a` di mana pada kasus function `mod()`, nilai value variabel `a` pada proses terakhir modulus berubah menjadi sisa pembagian atau hasil dari operasi modulus.
+
 #### • Compare Strings
+
+```c
+int strcmp(char* str1, char* str2) {
+	...
+}
+```
+30. 
+
 #### • Copy Strings
 #### • Clear Buffer Input
 #### • ASCII to Integer
