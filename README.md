@@ -1210,7 +1210,41 @@ int strcmp(char* str1, char* str2) {
 	...
 }
 ```
-30. 
+30. Mendeklarasikan function `strcmp()` dengan ketentuan parameter:
+	- `char* str1`: Suatu pointer array string di mana nilai value yang ada pada mana pointer merujuk yang nantinya akan dibandingkan dengan nilai value dari variabel `*str2`.
+ 	- `char* str2`: Suatu pointer array string di mana nilai value yang ada pada mana pointer merujuk yang nantinya akan dibandingkan dengan nilai value dari variabel `*str1`.
+
+```c
+int res = 0;
+```
+31. Mendeklarasikan variabel `res` dengan tipe data `int` di mana dalam penerapannya digunakan sebagai variabel untuk menyimpan data resultan dari proses perbandingan pointer array string `str1` dan `str2`. Di mana nilai value dari variabel `res` memiliki nilai awal `0` yang menunjukkan bahwa kedua array string adalah sama.
+
+```c
+while (!(res = *(unsigned char*)str1 - *(unsigned char*)str2) && *str2) {
+	++str1, ++str2;
+}
+```
+32.  
+
+```c
+if (res < 0) {
+	res = -1;
+}
+```
+33. Memastikan bahwa besar dari karakter ASCII pertama di dalam array string `*str1` yang tidak cocok dengan `*str2` lebih kecil dibandingkan dengan besar dari karakter ASCII di dalam array string `*str2`. Apabila nilai karakter ASCII di dalam array string `*str1` lebih kecil, maka nilai value dari variabel `res` akan diubah menjadi nilai `-1`.
+
+```c
+if (res > 0) {
+	res = 1;
+}
+```
+34. Memastikan bahwa besar dari karakter ASCII pertama di dalam array string `*str1` yang tidak cocok dengan `*str2` lebih besar dibandingkan dengan besar dari karakter ASCII di dalam array string `*str2`. Apabila nilai karakter ASCII di dalam array string `*str1` lebih besar, maka nilai value dari variabel `res` akan diubah menjadi nilai `1`.
+
+```c
+return res;
+```
+35. Mengembalikan nilai value dari variabel `res`.
+
 
 #### • Copy Strings
 #### • Clear Buffer Input
