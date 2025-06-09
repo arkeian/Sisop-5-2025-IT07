@@ -1442,6 +1442,16 @@ build: prepare bootloader stdlib shell kernel link
 
 ### • Kendala yang Dialami
 
+<p align="center">
+	<img src="https://github.com/user-attachments/assets/c7c7e1c3-ad57-4980-922f-324e3f34be4a" alt="Kangen melempar sebuah error ke stderr">  
+</p>
+
+> Screenshot potret munculnya dua hieroglif pada layar emulator Bochs.
+
+<p align="justify">
+&emsp;&emsp;Permasalahan yang ditampilkan pada potret merupakan suatu kasus di mana pada saat melakukan uji coba function <code>putc()</code> pada program <code>kernel.c</code> dengan mencoba untuk menampilkan satu karakter ASCII '<code>X</code>', pada emulator Bochs, karakter ASCII tersebut tidak muncul melainkan terdapat dua hieroglif yang ditampilkan pada layar. Hal ini dikarenakan pada program ANSI C (C89) yang menggunakan sistem 16-bit, urutan pendeklarasian fungsi pada program mempengaruhi kinerja program tersebut. Di mana pada kasus permasalahan di atas disebabkan oleh penempatan function <code>main()</code> pada bagian terakhir dari program <code>kernel.c</code> dan bukan merupakan function yang dideklarasikan paling awal.
+</p>
+
 ### • Revisi
 1. Implementasi Fitur `Grand Company` (Personalisasi Terminal)  
    1.1.Tujuan Fitur
