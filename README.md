@@ -824,9 +824,405 @@ repositionXY(0, 0);
 ```
 72. Memanggil function `repositionXY()` untuk mengubah value koordinat posisi x atau kolom menjadi `0` atau kembali ke awal dan koordinat posisi y atau baris menjadi `0` atau kembali ke awal.
 
-### • Stdlib
+### • Standard Library
+
+<p align="justify">  
+&emsp;&emsp;Pada program <code>EorzeOS</code>, agar program <code>shell.c</code> yang berinteraksi dengan user secara top-level dalam penerapan logikanya dapat berjalan, maka dibutuhkan beberapa fungsi untuk membantu menyederhanakan program <code>shell.c</code> tersebut. Maka dari itu, dibuatlah suatu program dengan bahasa ANSI C (C89) dengan nama <code>std_lib.c</code> di mana dalam penerapannya dapat menyimpan deklarasi fungsi utilitas yang banyak digunakan oleh <code>shell.c</code> dengan fungsi utilitas yang dimaksud dan digunakan dalam program <code>std_lib.c</code> adalah fungsi-fungsi yang berkaitan dengan manipulasi dan konversi tipe suatu variabel beserta tipe datanya dan nilai value yang tersimpan di dalam variabel tersebut. 
+</p>
+
+Adapun tampilan `std_lib.c` secara keseluruhan adalah sebagai berikut:
+
+```c
+#include "std_lib.h"
+#include "std_type.h"
+
+#define INT_MAX 32767
+
+int div(int a, int b) {
+  int quotient = 0;
+  int negative = false;
+  int tmpb, multiple;
+
+  if (b == 0) {
+    return INT_MAX;
+  }
+
+  if (a < 0) {
+    a *= -1;
+    negative = !negative;
+  }
+  
+  if (b < 0) {
+    b *= -1;
+    negative = !negative;
+  }
+
+  while (a >= b) {
+    tmpb = b;
+    multiple = 1;
+
+    while ((tmpb << 1) > 0 && (tmpb << 1) <= a) {
+      tmpb <<= 1;
+      multiple <<= 1;
+    }
+
+    a -= tmpb;
+    quotient += multiple;
+  }
+
+  if (negative) {
+    return -quotient;
+  }
+
+  return quotient;
+}
+
+int mod(int a, int b) {
+  int negative = false;
+  int tmpb;
+
+  if (b == 0) {
+    return 0;
+  }
+
+  if (a < 0) {
+    a *= -1;
+    negative = true;
+  }
+
+  if (b < 0) {
+    b *= -1;
+  }
+
+  while (a >= b) {
+    tmpb = b;
+
+    while ((tmpb << 1) > 0 && (tmpb << 1) <= a) {
+      tmpb <<= 1;
+    }
+
+    a -= tmpb;
+  }
+
+  if (negative) {
+    return -a;
+  }
+
+  return a;
+}
+
+int strcmp(char* str1, char* str2) {
+	int res = 0;
+	while (!(res = *(unsigned char*)str1 - *(unsigned char*)str2) && *str2) {
+		++str1, ++str2;
+  }
+
+	if (res < 0) {
+		res = -1;
+  }
+	if (res > 0) {
+		res = 1;
+  }
+
+	return res;
+}
+
+char *strcpy(char *dst, char *src) {
+  char *dstPtr = dst;
+
+  while (*src != '\0') {
+    *dst = *src;
+    dst++;
+    src++;
+  }
+  
+  *dst = '\0';
+
+  return dstPtr;
+}
+
+void clear(byte *buf, unsigned int size) {
+  unsigned int i;
+  for (i = 0; i < size; i++) {
+    buf[i] = 0;
+  }
+}
+
+void atoi(char *str, int *num) {
+  int tbuf[12];
+  int pos = 0;
+  int is_negative = 0;
+  *num = 0;
+
+  if (str[0] == '0' && str[1] == '\0') {
+    return;
+  }
+
+  if(str[0] == '-') {
+    is_negative = 1;
+    pos++;
+  }
+  
+  for (pos; str[pos] != '\0'; pos++) {
+    if (str[pos] >= '0' && str[pos] <= '9') {
+      *num = (*num * 10) + (str[pos] - '0');
+    }
+    else {
+      break;
+    }
+  }
+
+  if (is_negative) {
+    *num *= -1; 
+  }
+}
+
+void itoa(int num, char *str) {
+  char tbuf[12];
+  int pos = 0;
+  int is_negative = 0;
+  int i, len;
+
+  if (num == 0) {
+    str[0] = '0';
+    str[1] = '\0';
+    return;
+  }
+
+  if (num < 0) {
+    num *= -1;
+    is_negative = 1;
+  }
+
+  while (num != 0) {
+    tbuf[pos] = (char)('0' + mod(num, 10));
+    pos++;
+    num = div(num, 10);
+  }
+
+  if (is_negative) {
+    tbuf[pos] = '-';
+    pos++;
+  }
+
+  len = pos;
+
+  for (i = 0; i < len; i++) {
+    str[i] = tbuf[len - 1 - i];
+  }
+
+  str[len] = '\0';
+}
+```
+
+Di mana langkah implementasinya:
+
+#### • Preprocessors
+#### • Integer Division
+#### • Integer Modulus
+#### • Compare Strings
+#### • Copy Strings
+#### • Clear Buffer Input
+#### • ASCII to Integer
+#### • Integer to ASCII
 
 ### • Shell
+
+<p align="justify">  
+&emsp;&emsp;Pada program <code>EorzeOS</code>, dibutuhkan suatu program yang di mana pada dasarnya, dapat berinteraksi secara langsung dengan seorang user secara top-level melalui perantara Command Line Interface atau CLI berbasis teks. Maka dari itu, dibuatlah program dengan nama <code>shell.c</code> sebagai perantara antara user dengan program low-level seperti <code>kernel.c</code> di mana dalam penerapannya digunakan sebagai program di mana user memasukkan suatu perintah atau input yang nantinya akan digunakan oleh program <code>EorzeOS</code> sebagai dasar dari dilakukannya processing di mana hasilnya nanti akan dikembalikan lagi ke user ke dalam bentuk suatu keluaran output yang dicetak pada layar.
+</p>
+
+Adapun tampilan `shell.c` secara keseluruhan adalah sebagai berikut:
+
+```c
+#include "shell.h"
+#include "std_lib.h"
+#include "kernel.h"
+
+#define MAX_HISTORY 20
+#define BUFFER_SIZE 128
+
+char current_user[64] = "user";
+char history[MAX_HISTORY][BUFFER_SIZE];
+int history_count = 0;
+
+void shell() {
+    char buf[BUFFER_SIZE];
+    char original_input[BUFFER_SIZE];
+    char cmd[64];
+    char args[10][64];
+    int arg_count;
+    int num1, num2;
+    int resint;
+    char resstr[12];
+
+    printString("Welcome to EorzeOS!\n");
+    
+    while (true) {
+        clear(buf, BUFFER_SIZE);
+        printString(current_user);
+        printString("> ");
+
+        readString(buf);
+        strcpy(original_input, buf);
+
+        // Simpan ke history (jika tidak kosong)
+        if (buf[0] != '\0') {
+            if (history_count < MAX_HISTORY) {
+                strcpy(history[history_count++], buf);
+            } else {
+                // Geser seluruh history ke bawah, buang index 0, tambahkan di akhir
+                int i;
+                for (i = 0; i < MAX_HISTORY-1; i++) {
+                    strcpy(history[i], history[i+1]);
+                }
+                strcpy(history[MAX_HISTORY-1], buf);
+            }
+        }
+
+        parseCommand(buf, cmd, args, &arg_count);
+
+        if (cmd[0] == '\0') continue;
+
+        // exit / quit
+        if (strcmp(cmd, "exit") == 0 || strcmp(cmd, "quit") == 0) {
+            printString("Bye, ");
+            printString(current_user);
+            printString("!\n");
+            break;
+        }
+        // help
+        else if (strcmp(cmd, "help") == 0) {
+            printString("Available commands:\n");
+            printString("   user [name]     : Change current username\n");
+            printString("   history         : Show last commands\n");
+            printString("   yo              : Print 'gurt'\n");
+            printString("   gurt            : Print 'yo'\n");
+            printString("   add             : Add two integers\n");
+            printString("   sub             : Subtract two integers\n");
+            printString("   mul             : Multiply two integers\n");
+            printString("   div             : Divide two integers\n");
+            printString("   exit/quit       : Exit shell\n");
+            printString("   help            : Show this message\n");
+            printString("   (else)          : Echo input\n");
+        }
+        // user
+        else if (strcmp(cmd, "user") == 0) {
+            if (arg_count >= 1 && args[0][0] != '\0') {
+                strcpy(current_user, args[0]);
+                printString("Username changed to ");
+                printString(current_user);
+            } else {
+                strcpy(current_user, "user");
+                printString("Username changed to user");
+            }
+            printString("\n");
+        }
+        // history
+        else if (strcmp(cmd, "history") == 0) {
+            int i;
+            for (i = 0; i < history_count; i++) {
+                printString(history[i]);
+                printString("\n");
+            }
+        }
+        // yo dan gurt
+        else if (strcmp(cmd, "yo") == 0) {
+            printString("gurt\n");
+        } else if (strcmp(cmd, "gurt") == 0) {
+            printString("yo\n");
+        }
+        else if (strcmp(cmd, "div") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = div(num1, num2);
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
+        else if (strcmp(cmd, "add") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = num1 + num2;
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
+        else if (strcmp(cmd, "mul") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = num1 * num2;
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
+        else if (strcmp(cmd, "sub") == 0) {
+            atoi(args[0], &num1);
+            atoi(args[1], &num2);
+            resint = num1 - num2;
+            itoa(resint, resstr);
+            printString(resstr);
+            printString("\n");
+        }
+        else if (strcmp(cmd, "grandcompany") == 0) {
+            clearScreen();
+            if (strcmp(args[0], "maelstrom") == 0) {
+                putInMemory(0xB000, 0x8000 * 2 + 1, 0x04);
+            }
+            else if (strcmp(args[0], "twinadder") == 0) {
+                putInMemory(0xB000, 0x8000 * 2 + 1, 0x0E);
+            }
+            else if (strcmp(args[0], "immortalflames") == 0) {
+                putInMemory(0xB000, 0x8000 * 2 + 1, 0x01);
+            }
+            else {
+                putInMemory(0xB000, 0x8000 * 2 + 1, 0x0F);
+            }
+        }
+        // else echo
+        else {
+            printString(original_input);
+            printString("\n");
+        }
+    }
+}
+
+void parseCommand(char *buf, char *cmd, char arg[10][64], int *arg_count) {
+    int i = 0, j = 0, k;
+    *arg_count = 0;
+
+    // Lewati spasi awal
+    while (buf[i] != '\0' && buf[i] == ' ') i++;
+
+    // Baca cmd
+    j = 0;
+    while (buf[i] != '\0' && buf[i] != ' ' && j < 63) {
+        cmd[j++] = buf[i++];
+    }
+    cmd[j] = '\0';
+
+    // Lewati spasi sebelum arg
+    while (buf[i] != '\0' && buf[i] == ' ') i++;
+
+    // Baca argumen sebanyak mungkin (maks 9, sisanya diabaikan)
+    for (k = 0; k < 10; k++) {
+        int m = 0;
+        if (buf[i] == '\0' || *arg_count >= 9) {
+            arg[k][0] = '\0';
+            continue;
+        }
+        while (buf[i] != '\0' && buf[i] != ' ' && m < 63) {
+            arg[k][m++] = buf[i++];
+        }
+        arg[k][m] = '\0';
+        (*arg_count)++;
+
+        while (buf[i] != '\0' && buf[i] == ' ') i++;
+    }
+}
+```
+
+Di mana langkah implementasinya:
 
 ### • Makefile
 
