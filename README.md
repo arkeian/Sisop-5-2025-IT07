@@ -1443,3 +1443,139 @@ build: prepare bootloader stdlib shell kernel link
 ### • Kendala yang Dialami
 
 ### • Revisi
+1. Implementasi Fitur `Grand Company` (Personalisasi Terminal)  
+   1.1.Tujuan Fitur
+   Fitur ini memungkinkan pengguna untuk "bergabung" dengan salah satu dari tiga Grand Company di Eorzea, yang akan mengubah warna latar belakang terminal dan judul prompt pengguna.  
+   1.2 Detail Implementasi
+   - Variabel Judul Grand Company: Variabel global `current_grandcompany` di `src/shell.c` menyimpan judul Grand Company yang akan ditambahkan ke `prompt`.
+	```c
+	// src/shell.c
+	char current_user[64] = "user";
+	char current_grandcompany[64] = ""; // Kosong secara default
+	```
+    - Pembaruan Prompt: Di awal loop `while(true)` di `shell()`, prompt pengguna diperbarui untuk mencakup `@<GrandCompanyTitle>` jika `current_grandcompany` tidak kosong.
+	```c
+	// src/shell.c (dalam fungsi shell())
+	// ...
+	        printString(current_user);
+	        if (current_grandcompany[0] != '\0') {
+	            printString("@");
+	            printString(current_grandcompany);
+	        }
+	        printString("> ");
+	// ...
+	```
+     - Perintah `grandcompany`: Perintah ini memproses argumen nama Grand Company. Berdasarkan nama yang valid `(maelstrom, twinadder, immortalflames)`, terminal akan dihapus `(clearScreen())`, warna teks diubah menggunakan `setColor()`, dan `current_grandcompany` diatur. Jika argumen tidak valid, pesan error ditampilkan.
+	```c
+	// src/shell.c (dalam fungsi shell())
+	        else if (strcmp(cmd, "grandcompany") == 0) {
+	            if (arg_count >= 1 && args[0][0] != '\0') {
+	                if (strcmp(args[0], "maelstrom") == 0) {
+	                    clearScreen();
+	                    setColor(0x0C); // Merah terang
+	                    strcpy(current_grandcompany, "Storm");
+	                } else if (strcmp(args[0], "twinadder") == 0) {
+	                    clearScreen();
+	                    setColor(0x0E); // Kuning terang
+	                    strcpy(current_grandcompany, "Serpent");
+	                } else if (strcmp(args[0], "immortalflames") == 0) {
+	                    clearScreen();
+	                    setColor(0x09); // Biru terang
+	                    strcpy(current_grandcompany, "Flame");
+	                } else {
+	                    printString("Error: Grand company tidak dikenal.\n");
+	                    printString("Gunakan maelstrom, twinadder, atau immortalflames.\n");
+	                }
+	            } else {
+	                printString("Error: Nama grand company tidak diberikan.\n");
+	                printString("Gunakan grandcompany [nama].\n");
+	            }
+	        }
+	```
+	- Perintah clear (untuk reset): Perintah clear ditambahkan untuk mereset terminal ke warna default (putih) dan menghapus judul Grand Company.
+	```c
+	// src/shell.c (dalam fungsi shell())
+	        else if (strcmp(cmd, "clear") == 0) {
+	            clearScreen();
+	            setColor(0x0F); // Kembali ke putih terang
+	            strcpy(current_grandcompany, ""); // Hapus nama grand company
+	            printString("Para Grand Company sedih kamu netral.\n");
+	        }
+	```
+ 	- Fungsi `setColor()`: Fungsi ini diimplementasikan di `src/kernel.c` untuk mengubah variabel `statis _color` di kernel yang mengontrol atribut warna karakter yang akan dicetak. Deklarasi fungsi ini ditambahkan di `include/kernel.h`.
+	```c
+	// include/kernel.h
+	void setColor(unsigned char color); // Deklarasi
+	```
+	```c
+	// src/kernel.c
+	// ...
+	static unsigned char _color = 0x0F; // Variabel warna di kernel
+	
+	// Implementasi fungsi
+	void setColor(unsigned char color) {
+	    _color = color;
+	}
+	// ...
+	```
+2. Implementasi Fitur Respons Acak `(yogurt)`
+   2.1 Tujuan Fitur  
+   Fitur ini bertujuan untuk membuat perintah yogurt merespons secara dinamis dan tidak terduga dari sekumpulan pilihan yang telah ditentukan, yaitu `"yo"`, `"ts unami gng </3"`, dan `"sygau"`. Output respons juga diharapkan diawali dengan `"gurt> "` untuk konsistensi tampilan.
+   2.2 Detail Implementasi
+   - Definisi Respons: Array string global `yogurt_responses` digunakan untuk menyimpan daftar respons yang mungkin. Variabel `num_yogurt_responses` menyimpan jumlah respons dalam array. Penempatan di global scope `(src/shell.c)` diperlukan untuk kompatibilitas dengan standar `C89` `(bcc)`.
+	```c
+	// src/shell.c
+	// ...
+	#define BUFFER_SIZE 128
+	
+	char current_user[64] = "user";
+	char history[MAX_HISTORY][BUFFER_SIZE];
+	int history_count = 0;
+	
+	// Dipindahkan ke global/static agar bisa diinisialisasi di C89
+	char *yogurt_responses[] = {
+	    "yo",
+	    "ts unami gng </3",
+	    "sygau"
+	};
+	int num_yogurt_responses = 3;
+	// ...
+	```
+ 	- Pemilihan Respons Acak: Di dalam fungsi `shell()`, ketika perintah yogurt terdeteksi, sebuah indeks acak dihasilkan menggunakan fungsi `rand()` dan `mod()` kustom. Respons yang sesuai kemudian dicetak.
+	```c
+	// src/shell.c (dalam fungsi shell())
+	        // yogurt - Fitur baru!
+	        else if (strcmp(cmd, "yogurt") == 0) {
+	            random_index = mod(rand(), num_yogurt_responses); 
+	            printString("gurt> "); // Menambahkan awalan "gurt> "
+	            printString(yogurt_responses[random_index]);
+	            printString("\n");
+	        }
+	```
+	- Dukungan Generator Angka Acak `(rand()`, `srand())`: Karena lingkungan OS minimal tidak memiliki pustaka C standar penuh, implementasi `rand()` dan `srand()` kustom diperlukan di `src/std_lib.c` dan dideklarasikan di `include/std_lib.h.` `srand(1)` dipanggil di `main()` `(src/kernel.c)` untuk menginisialisasi seed.
+	```c
+	// include/std_lib.h
+	int rand();
+	void srand(unsigned int seed);
+	```
+	```c
+	// src/std_lib.c
+	static unsigned int next_rand_seed = 1;
+	
+	void srand(unsigned int seed) {
+	    next_rand_seed = seed;
+	}
+	
+	int rand() {
+	    next_rand_seed = (next_rand_seed * 25173 + 13849); // LCG 16-bit
+	    return (int)(next_rand_seed >> 1) & 0x7FFF; // Hasil 0-32767
+	}
+	```
+	```c
+	// src/kernel.c (dalam fungsi main())
+	void main() {
+	  clearScreen();
+	  srand(1); // Inisialisasi generator angka acak
+	  shell();
+	}
+	```
